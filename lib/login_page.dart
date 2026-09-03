@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -296,18 +297,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       WidgetSpan(
                         child: GestureDetector(
                           onTap: () {
-                            // Navigasi ke Register
+                             Navigator.push(
+                             context,
+                             MaterialPageRoute(
+                              builder: (context) => const RegisterPage(),
+                               ),
+                             );
                           },
-                          child: const Text(
-                            'Daftar di sini',
-                            style: TextStyle(
-                              color: Color(0xFF287A4B),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                         child: const Text(
+                         'Daftar di sini',
+                         style: TextStyle(
+                          fontSize: 12,
+                         color: Color(0xFF287548),
+                          fontWeight: FontWeight.bold,
                           ),
+                          ),
+                        )
                         ),
-                      ),
                     ],
                   ),
                 ),
