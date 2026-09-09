@@ -40,12 +40,22 @@ class _LoginScreenState extends State<LoginScreen> {
         content: Text('Login berhasil'),
       ),
     );
+void login() {
+  String email = emailController.text.trim();
+  String password = passwordController.text.trim();
 
-    // Nanti bisa diarahkan ke Home:
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-    // );
+  if (email.isEmpty || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Email dan password wajib diisi'),
+      ),
+    );
+    return;
+  }
+
+  // Login berhasil → masuk ke halaman Home
+  Navigator.pushReplacementNamed(context, '/home');
+}
   }
 
   @override
@@ -282,42 +292,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 12),
 
-              // =========================
+                           // =========================
               // DAFTAR
               // =========================
               Center(
-                child: RichText(
-                  text: TextSpan(
-                    text: 'Belum punya akun? ',
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Belum punya akun? ',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 12,
+                      ),
                     ),
-                    children: [
-                      WidgetSpan(
-                        child: GestureDetector(
-                          onTap: () {
-                             Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                              builder: (context) => const RegisterPage(),
-                               ),
-                             );
-                          },
-                         child: const Text(
-                         'Daftar di sini',
-                         style: TextStyle(
+                    TextButton(
+                      onPressed: () {
+                        // Menggunakan named route yang sudah didaftarkan di main.dart
+                        Navigator.pushReplacementNamed(context, '/register');
+                      },
+                      child: const Text(
+                        'Daftar di sini',
+                        style: TextStyle(
                           fontSize: 12,
-                         color: Color(0xFF287548),
+                          color: Color(0xFF287548),
                           fontWeight: FontWeight.bold,
-                          ),
-                          ),
-                        )
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
+              const SizedBox(height: 30),
+
 
               const SizedBox(height: 30),
             ],

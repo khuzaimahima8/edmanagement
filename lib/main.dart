@@ -1,8 +1,8 @@
-import 'package:edmanagement/screens/home.dart';
-import 'package:edmanagement/screens/login_page.dart';
-import 'package:edmanagement/screens/register_page.dart';
 import 'package:flutter/material.dart';
 
+import 'screens/login_page.dart';
+import 'screens/register_page.dart';
+import 'screens/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,15 +15,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       title: 'Marketplace UMKM',
 
-      // Halaman pertama yang dibuka
-      home: const LoginScreen(),
-      
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
+      ),
 
-      // Daftar halaman yang bisa digunakan
+      // Halaman pertama saat aplikasi dijalankan
+      initialRoute: '/login',
+
+      // Semua halaman aplikasi
       routes: {
-        '/login': (context) => const LoginScreen(),
+        '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
       },
