@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Login App',
+      title: 'ED Management',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'sans-serif',

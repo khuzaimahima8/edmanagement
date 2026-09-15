@@ -189,7 +189,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: Colors.black87),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegisterScreen(),
+                        ),
+                        );
+                    },
                     child: Text(
                       'Daftar di sini',
                       style: TextStyle(
