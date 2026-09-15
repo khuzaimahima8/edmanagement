@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'screens/login_page.dart';
-import 'screens/register_page.dart';
-import 'screens/home.dart';
+import 'screens/login_screens.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,24 +11,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Login App',
       debugShowCheckedModeBanner: false,
-
-      title: 'Marketplace UMKM',
-
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'sans-serif',
+        primaryColor: const Color(0xFF006B42),
+        useMaterial3: true,
       ),
-
-      // Halaman pertama saat aplikasi dijalankan
-      initialRoute: '/login',
-
-      // Semua halaman aplikasi
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(),
-      },
+      home: const LoginScreen(),
     );
   }
 }
