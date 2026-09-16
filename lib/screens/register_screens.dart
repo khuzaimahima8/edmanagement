@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screens.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -171,7 +172,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Aksi pendaftaran
+                    Navigator.pushAndRemoveUntil(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
