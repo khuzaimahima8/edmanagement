@@ -13,10 +13,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Kategori
   final List<Map<String, dynamic>> categories = [
-    {'name': 'Tas Rajut', 'price': '17.000', 'image': 'assets/tasrajut.jpeg'},
-    {'name': 'Keripik Pisang', 'price': '10.000', 'image': 'assest/keripikpisang.jpeg'},
-    {'name': 'Kopi Cendono', 'price':'25.000', 'image':'assets/kopicendono.jpeg'},
-    {'name': 'Stik Kelor', 'price': '12.000', 'image': 'assets/bawangkelor.jpeg'},
+    {'icon': Icons.restaurant, 'label': 'Makanan'},
+    {'icon': Icons.local_drink, 'label': 'Minuman'},
+    {'icon': Icons.brush, 'label': 'Kerajinan'},
+    {'icon': Icons.shopping_bag, 'label': 'Fashion'},
+    {'icon': Icons.more_horiz, 'label': 'Lainnya'},
   ];
 
   // Produk
@@ -24,22 +25,22 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'name': 'Tas Rajut',
       'price': 'Rp17.000',
-      'image': 'https://via.placeholder.com/150', // Ganti dengan path asset/URL gambar Anda
+      'image': 'assets/tasrajut.jpeg',
     },
     {
       'name': 'Keripik Pisang',
       'price': 'Rp10.000',
-      'image': 'https://via.placeholder.com/150',
+      'image': 'assets/keripikpisang.jpeg',
     },
     {
       'name': 'Kopi Cendana',
       'price': 'Rp25.000',
-      'image': 'https://via.placeholder.com/150',
+      'image': 'assets/kopi.jpeg',
     },
     {
       'name': 'Stik Kelor',
       'price': 'Rp12.000',
-      'image': 'https://via.placeholder.com/150',
+      'image': 'assets/bawangkelor.jpeg',
     },
   ];
 
