@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'detail_produk_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -172,25 +173,50 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 itemBuilder: (context, index) {
                   final item = products[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            item['image']!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey.shade300,
-                                child: const Icon(Icons.image, color: Colors.grey),
-                              );
-                            },
-                          ),
-                        ),
+                  final imagepath = item['image'] ?? '';
+                  final name = item['name'] ?? '';
+                  final price = item['price'] ?? '';
+
+                  return GestureDetector(
+                   onTap: () {
+                     Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailProductScreen(product: item),
                       ),
+                     );
+                   },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: imagepath.isNotEmpty
+                                      ? Image.asset(
+                                          imagepath,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          errorBuilder: (context, error, stacktrace){
+                                            return Container(
+                                              color: Colors.grey.shade300,
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                                color: Colors.grey,
+                                                ),
+                                            );
+                                          }
+                                        )
+                                      : Container(
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: Icon(Icons.image, size: 40, color: Colors.grey),
+                                          ),
+                                        ),
+                                )
+                              )
+                            ]
+                          )
                       const SizedBox(height: 8),
                       Text(
                         item['name']!,
@@ -211,10 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ],
-          ),
-        ),
-      ),
+
 
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
@@ -249,4 +272,3 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
