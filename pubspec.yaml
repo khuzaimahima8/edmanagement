@@ -60,6 +60,10 @@ flutter:
 
   assets:
     - assets/logo.png
+    - assets/tasrajut.jpeg
+    - assets/keripikpisang.jpeg
+    - assets/kopi.jpeg
+    - assets/bawangkelor.jpeg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

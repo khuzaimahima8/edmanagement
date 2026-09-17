@@ -13,11 +13,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Kategori
   final List<Map<String, dynamic>> categories = [
-    {'icon': Icons.restaurant, 'label': 'Makanan'},
-    {'icon': Icons.local_drink, 'label': 'Minuman'},
-    {'icon': Icons.brush, 'label': 'Kerajinan'},
-    {'icon': Icons.shopping_bag, 'label': 'Fashion'},
-    {'icon': Icons.more_horiz, 'label': 'Lainnya'},
+    {'name': 'Tas Rajut', 'price': '17.000', 'image': 'assets/tasrajut.jpeg'},
+    {'name': 'Keripik Pisang', 'price': '10.000', 'image': 'assest/keripikpisang.jpeg'},
+    {'name': 'Kopi Cendono', 'price':'25.000', 'image':'assets/kopicendono.jpeg'},
+    {'name': 'Stik Kelor', 'price': '12.000', 'image': 'assets/bawangkelor.jpeg'},
   ];
 
   // Produk
