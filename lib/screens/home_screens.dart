@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'detail_produk_screens.dart';
+import 'detail_product_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
     {'icon': Icons.more_horiz, 'label': 'Lainnya'},
   ];
 
-  // Produk
+  // Daftar Produk
   final List<Map<String, String>> products = [
     {
       'name': 'Tas Rajut',
@@ -121,11 +121,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       CircleAvatar(
                         radius: 24,
                         backgroundColor: primaryColor,
-                        child: Icon(cat['icon'], color: Colors.white, size: 22),
+                        child: Icon(
+                          cat['icon'] as IconData? ?? Icons.category,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        cat['label'],
+                        cat['label']?.toString() ?? '',
                         style: const TextStyle(fontSize: 12),
                       ),
                     ],
@@ -160,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Grid Produk
+              // Grid Produk (Bisa Diklik ke Detail)
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -178,66 +182,69 @@ class _HomeScreenState extends State<HomeScreen> {
                   final price = item['price'] ?? '';
 
                   return GestureDetector(
-                   onTap: () {
-                     Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailProductScreen(product: item),
-                      ),
-                     );
-                   },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: imagepath.isNotEmpty
-                                      ? Image.asset(
-                                          imagepath,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          errorBuilder: (context, error, stacktrace){
-                                            return Container(
-                                              color: Colors.grey.shade300,
-                                              child: const Icon(
-                                                Icons.image_not_supported,
-                                                color: Colors.grey,
-                                                ),
-                                            );
-                                          }
-                                        )
-                                      : Container(
-                                          color: Colors.grey.shade300,
-                                          child: const Center(
-                                            child: Icon(Icons.image, size: 40, color: Colors.grey),
-                                          ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailProductScreen(product: item),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: imagepath.isNotEmpty
+                                ? Image.asset(
+                                    imagepath,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
                                         ),
-                                )
-                              )
-                            ]
-                          )
-                      const SizedBox(height: 8),
-                      Text(
-                        item['name']!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: Colors.grey.shade300,
+                                    child: const Icon(
+                                      Icons.image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        item['price']!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                        const SizedBox(height: 8),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          price,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
-
+            ],
+          ),
+        ),
+      ),
 
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
@@ -272,3 +279,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
