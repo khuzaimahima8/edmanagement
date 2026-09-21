@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'cart_screens.dart';
 
 class DetailProductScreen extends StatefulWidget {
   final Map<String, String> product;
@@ -262,7 +263,17 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (context) => CartScreen(
+                          addedProduct: widget.product,
+                          initialQuantity: _quantity,
+                        ),
+                        ),
+                        );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
