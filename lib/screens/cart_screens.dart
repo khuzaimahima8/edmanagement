@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'checkout_screens.dart';
 
 class CartScreen extends StatefulWidget {
   final Map<String, String>? addedProduct;
@@ -262,7 +263,25 @@ class _CartScreenState extends State<CartScreen> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        final selectedOrders = cartItems.map((item){
+                          return{
+                            'name': item['name'],
+                            'variant': item['variant'],
+                            'qty': item['quantity'],
+                            'price': formatRupiah((item['price'] as int) * (item['quantity'] as int)),
+                          };
+                        }).toList();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CheckoutScreen(
+                              totalPrice: totalPrice,
+                              orderItems: selectedOrders,
+                            ),
+                             ),
+                             );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
