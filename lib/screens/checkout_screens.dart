@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'succes_screens.dart';
 
 class CheckoutScreen extends StatelessWidget {
   final int totalPrice;
@@ -157,7 +158,10 @@ class CheckoutScreen extends StatelessWidget {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Dialog/Aksi saat tombol Beli diklik
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SuccessScreen())
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Pesanan Berhasil Dibuat!'),
