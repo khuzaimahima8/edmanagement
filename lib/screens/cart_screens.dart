@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'checkout_screens.dart';
 
 class CartScreen extends StatefulWidget {
-  final Map<String, String>? addedProduct;
-  final int initialQuantity;
+  final Map<String, dynamic>? addedProduct;
+  final int? initialQuantity;
 
   const CartScreen({
     super.key,
     this.addedProduct,
-    this.initialQuantity = 1,
+    this.initialQuantity,
   });
+  
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -18,70 +19,59 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   final Color primaryColor = const Color(0xFF006B42);
 
-  // Item bawaan keranjang sesuai desain gambar
+  // Data item keranjang dengan variabel 'isSelected' untuk status centang
   List<Map<String, dynamic>> cartItems = [
     {
       'name': 'Tas Rajut',
       'variant': 'Hitam',
       'price': 17000,
       'quantity': 1,
-      'image': 'assets/tasrajut.jpeg',
-      'selected': false,
+      'image': 'assets/tas_rajut.jpeg',
+      'isSelected': false, // Status awal belum dicentang
     },
     {
       'name': 'Keripik Pisang',
       'variant': '250 g',
       'price': 10000,
-      'quantity': 2,
-      'image': 'assets/keripikpisang.jpeg',
-      'selected': false,
+      'quantity': 1,
+      'image': 'assets/keripik_pisang.jpeg',
+      'isSelected': false,
+    },
+    {
+      'name': 'Tas Rajut',
+      'variant': 'Default',
+      'price': 17000,
+      'quantity': 1,
+      'image': 'assets/tas_rajut.jpeg',
+      'isSelected': false,
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    // Menambahkan produk dari halaman detail jika ada
-    if (widget.addedProduct != null) {
-      final newProduct = widget.addedProduct!;
-      final priceString = newProduct['price']
-              ?.replaceAll('Rp', '')
-              .replaceAll('.', '')
-              .trim() ??
-          '0';
-      final parsedPrice = int.tryParse(priceString) ?? 0;
-
-      cartItems.add({
-        'name': newProduct['name'] ?? 'Produk Baru',
-        'variant': 'Default',
-        'price': parsedPrice,
-        'quantity': widget.initialQuantity,
-        'image': newProduct['image'] ?? '',
-        'selected': true,
-      });
-    }
-  }
-
-  // Hitung total item & harga
-  int get totalItems {
+  // Hitung Total Item yang dicentang saja
+  int get totalSelectedItems {
     int total = 0;
     for (var item in cartItems) {
-      total += (item['quantity'] as int);
+      if (item['isSelected'] == true) {
+        total += (item['quantity'] as int);
+      }
     }
     return total;
   }
 
+  // Hitung Total Harga dari item yang dicentang saja
   int get totalPrice {
     int total = 0;
     for (var item in cartItems) {
-      total += (item['price'] as int) * (item['quantity'] as int);
+      if (item['isSelected'] == true) {
+        total += (item['price'] as int) * (item['quantity'] as int);
+      }
     }
     return total;
   }
 
-  // Helper format rupiah
-  String formatRupiah(int price) {
-    return 'Rp${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
+  // Format angka ke format rupiah sederhana (misal 17000 -> Rp17.000)
+  String formatRupiah(int number) {
+    return 'Rp${number.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
   }
 
   @override
@@ -97,213 +87,223 @@ class _CartScreenState extends State<CartScreen> {
         ),
         title: const Text(
           'Keranjang',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey.shade200,
+            height: 1.0,
+          ),
+        ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Divider(height: 1, color: Colors.black12),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                itemCount: cartItems.length,
-                separatorBuilder: (context, index) =>
-                    const Divider(height: 32, color: Colors.black12),
-                itemBuilder: (context, index) {
-                  final item = cartItems[index];
-                  return Row(
-                    children: [
-                      // Checkbox
-                      Checkbox(
-                        value: item['selected'] as bool,
-                        activeColor: primaryColor,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            item['selected'] = value ?? false;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 4),
+      body: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        itemCount: cartItems.length,
+        separatorBuilder: (context, index) => Divider(
+          color: Colors.grey.shade200,
+          thickness: 1,
+          height: 24,
+        ),
+        itemBuilder: (context, index) {
+          final item = cartItems[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                // 1. Tanda Centang / Checkbox
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: item['isSelected'],
+                    activeColor: primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        item['isSelected'] = value ?? false;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
 
-                      // Gambar Produk
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          width: 70,
-                          height: 70,
-                          color: Colors.grey.shade200,
-                          child: (item['image'] as String).isNotEmpty
-                              ? Image.asset(
-                                  item['image'] as String,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.image, color: Colors.grey),
-                                )
-                              : const Icon(Icons.image, color: Colors.grey),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
+                // 2. Gambar Produk
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Image.asset(
+                    item['image'],
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey.shade300,
+                        child: const Icon(Icons.image, color: Colors.grey),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
 
-                      // Detail Produk
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['name'] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              item['variant'] as String,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              formatRupiah(item['price'] as int),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Counter Jumlah
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                if ((item['quantity'] as int) > 1) {
-                                  setState(() {
-                                    item['quantity'] =
-                                        (item['quantity'] as int) - 1;
-                                  });
-                                }
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: Text('-', style: TextStyle(fontSize: 14)),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6),
-                              child: Text(
-                                '${item['quantity']}',
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  item['quantity'] =
-                                      (item['quantity'] as int) + 1;
-                                });
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: Text('+', style: TextStyle(fontSize: 14)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-
-            // Footer Total & Tombol Checkout
-            const Divider(height: 1, color: Colors.black12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 3. Nama, Varian & Harga
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Total ($totalItems item)',
+                        item['name'],
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        formatRupiah(totalPrice),
+                        item['variant'],
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatRupiah(item['price']),
+                        style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
+                          color: primaryColor,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final selectedOrders = cartItems.map((item){
-                          return{
-                            'name': item['name'],
-                            'variant': item['variant'],
-                            'qty': item['quantity'],
-                            'price': formatRupiah((item['price'] as int) * (item['quantity'] as int)),
-                          };
-                        }).toList();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CheckoutScreen(
-                              totalPrice: totalPrice,
-                              orderItems: selectedOrders,
-                            ),
-                             ),
-                             );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Checkout',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                ),
+
+                // 4. Tombol Kuantitas (- 1 +)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                ],
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          if (item['quantity'] > 1) {
+                            setState(() {
+                              item['quantity']--;
+                            });
+                          }
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          child: Text('-', style: TextStyle(fontSize: 14)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        child: Text(
+                          '${item['quantity']}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            item['quantity']++;
+                          });
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          child: Text('+', style: TextStyle(fontSize: 14)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+
+      // 5. Bagian Bawah (Total Item, Total Harga, dan Tombol Checkout)
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade200),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Total item dinamis berdasarkan centang
+                Text(
+                  'Total ($totalSelectedItems item)',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
+                ),
+                // Total harga dinamis berdasarkan centang
+                Text(
+                  formatRupiah(totalPrice),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: totalSelectedItems > 0
+                    ? () {
+                        // Aksi Checkout jika ada item yang dicentang
+                      }
+                    : null, // Berubah nonaktif jika tidak ada item dicentang
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Checkout',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
-      );
+    );
   }
 }
