@@ -1,4 +1,7 @@
+import 'package:edmanagement/screens/edit_akun_screens.dart';
 import 'package:flutter/material.dart';
+import 'pesanan_saya_screens.dart';
+import 'alamat_saya_screens.dart';
 
 class AkunScreen extends StatelessWidget {
   const AkunScreen({super.key});
@@ -147,11 +150,22 @@ class AkunScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _buildMenuItem('Pesanan Saya', onTap: () {}),
+                        _buildMenuItem('Pesanan Saya', onTap: () {
+                          Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => const PesananSayaScreen(),
+                            ),
+                            );
+                        },
+                        ),
                         _buildDivider(),
                         _buildMenuItem('Keranjang', onTap: () {}),
                         _buildDivider(),
-                        _buildMenuItem('Alamat', onTap: () {}),
+                        _buildMenuItem('Alamat', onTap: () {
+                          Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => const AlamatSayaScreen(),
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -182,7 +196,11 @@ class AkunScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _buildMenuItem('Akun', onTap: () {}),
+                        _buildMenuItem('Akun', onTap: () {
+                          Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => const EditAkunScreen()),
+                          );
+                        }),
                         _buildDivider(),
                         _buildMenuItem('Tentang Aplikasi', onTap: () {}),
                       ],
