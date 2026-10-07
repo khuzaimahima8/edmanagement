@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import 'package:provider/provider.dart'; // 1. Import Provider
+import '../providers/user_provider.dart'; // 1. Import UserProvider
 
 class EditAkunScreen extends StatefulWidget {
   const EditAkunScreen({super.key});
@@ -17,7 +17,7 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
   @override
   void initState() {
     super.initState();
-    // Mengambil nilai awal dari UserProvider
+    // Isi nilai awal kolom input dari UserProvider
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     _namaController = TextEditingController(text: userProvider.nama);
     _teleponController = TextEditingController(text: userProvider.telepon);
@@ -32,8 +32,8 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
     super.dispose();
   }
 
-  void _simpanPerubahan() {
-    // Memperbarui data di Provider secara global
+  // Fungsi simpan ketika tombol dipencet
+  void _simpan() {
     Provider.of<UserProvider>(context, listen: false).updateProfile(
       nama: _namaController.text,
       telepon: _teleponController.text,
@@ -44,13 +44,12 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
       const SnackBar(content: Text('Profil berhasil diperbarui!')),
     );
 
-    Navigator.pop(context); // Kembali ke halaman sebelumnya
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
-    
+  
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -70,7 +69,6 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Avatar Profil
             const CircleAvatar(
               radius: 40,
               backgroundColor: Colors.black12,
@@ -80,7 +78,7 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
             const Text('Edit foto', style: TextStyle(fontSize: 13)),
             const SizedBox(height: 24),
 
-            // Form Input
+            // Form Input (Menggunakan Controller yang terhubung ke Provider)
             Container(
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
@@ -108,12 +106,11 @@ class _EditAkunScreenState extends State<EditAkunScreen> {
             ),
 
             const SizedBox(height: 24),
-            // Tombol Simpan
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: _simpanPerubahan,
+                onPressed: _simpan,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF006B42),
                   shape: RoundedRectangleBorder(

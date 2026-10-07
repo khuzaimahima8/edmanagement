@@ -26,7 +26,7 @@ class _CartScreenState extends State<CartScreen> {
       'variant': 'Hitam',
       'price': 17000,
       'quantity': 1,
-      'image': 'assets/tas_rajut.jpeg',
+      'image': 'assets/tasrajut.jpeg',
       'isSelected': false, // Status awal belum dicentang
     },
     {
@@ -34,7 +34,7 @@ class _CartScreenState extends State<CartScreen> {
       'variant': '250 g',
       'price': 10000,
       'quantity': 1,
-      'image': 'assets/keripik_pisang.jpeg',
+      'image': 'assets/keripikpisang.jpeg',
       'isSelected': false,
     },
     {
@@ -42,7 +42,7 @@ class _CartScreenState extends State<CartScreen> {
       'variant': 'Default',
       'price': 17000,
       'quantity': 1,
-      'image': 'assets/tas_rajut.jpeg',
+      'image': 'assets/tasrajut.jpeg',
       'isSelected': false,
     },
   ];
