@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_screens.dart';
-import 'main_navigator_screens.dart';
+import 'pembeli/main_navigator_screens.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
