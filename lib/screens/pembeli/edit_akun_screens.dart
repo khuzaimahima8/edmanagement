@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // 1. Import Provider
-import '../providers/user_provider.dart'; // 1. Import UserProvider
+import '../../providers/user_provider.dart';// 1. Import UserProvider
 
 class EditAkunScreen extends StatefulWidget {
   const EditAkunScreen({super.key});

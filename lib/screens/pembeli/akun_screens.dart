@@ -1,4 +1,4 @@
-import 'package:edmanagement/screens/edit_akun_screens.dart';
+import 'package:edmanagement/screens/pembeli/edit_akun_screens.dart';
 import 'package:flutter/material.dart';
 import 'pesanan_saya_screens.dart';
 import 'alamat_saya_screens.dart';
