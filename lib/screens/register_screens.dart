@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'pembeli/home_screens.dart';
+import 'penjual/seller_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +18,159 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _addressController = TextEditingController();
 
   bool _obscureText = true;
+  bool _isLoading = false;
+
+  // ROLE PEMBELI ATAU PENJUAL
+  String _selectedRole = 'buyer';
+
   final Color primaryColor = const Color(0xFF006B42);
+
+  Future<void> _register() async {
+    final nama = _nameController.text.trim();
+    final noHandphone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final alamat = _addressController.text.trim();
+
+    // =========================
+    // VALIDASI
+    // =========================
+
+    if (nama.isEmpty) {
+      _showMessage('Nama harus diisi');
+      return;
+    }
+
+    if (noHandphone.isEmpty) {
+      _showMessage('No handphone harus diisi');
+      return;
+    }
+
+    if (email.isEmpty) {
+      _showMessage('Email harus diisi');
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showMessage('Password harus diisi');
+      return;
+    }
+
+    if (password.length < 6) {
+      _showMessage('Password minimal 6 karakter');
+      return;
+    }
+
+    if (alamat.isEmpty) {
+      _showMessage('Alamat harus diisi');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      debugPrint('==============================');
+      debugPrint('REGISTER - MOCK FRONT-END MODE');
+      debugPrint('==============================');
+
+      // Simulasi jeda waktu loading untuk efek nyata
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _selectedRole == 'seller'
+                ? 'Pendaftaran penjual berhasil (Mock)'
+                : 'Pendaftaran pembeli berhasil (Mock)',
+          ),
+          backgroundColor: const Color(0xFF006B42),
+        ),
+      );
+
+      // =========================
+      // ROLE PENJUAL
+      // MASUK DASHBOARD PENJUAL
+      // =========================
+
+      if (_selectedRole == 'seller') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SellerDashboardScreen(),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      }
+
+      // =========================
+      // ROLE PEMBELI
+      // MASUK DASHBOARD PEMBELI
+      // =========================
+
+      else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Terjadi kesalahan: $e',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // =========================
+  // PESAN
+  // =========================
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  // =========================
+  // DISPOSE
+  // =========================
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+
+    super.dispose();
+  }
+
+  // =========================
+  // BUILD
+  // =========================
 
   @override
   Widget build(BuildContext context) {
@@ -24,41 +178,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: 16.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Navigation Bar Atas (Tombol Kembali & Panah Kanan)
+              // =========================
+              // NAVIGASI
+              // =========================
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.black,
+                    ),
                     onPressed: () {
-                      Navigator.pop(context); // Kembali ke LoginScreen
+                      Navigator.pop(context);
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward, color: Colors.black),
-                    onPressed: () {
-                      // Aksi navigasi ke halaman berikutnya jika ada
-                    },
+                    icon: const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.black,
+                    ),
+                    onPressed: () {},
                   ),
                 ],
               ),
+
               const SizedBox(height: 10),
 
-              // Icon Bag/Logo
+              // =========================
+              // LOGO
+              // =========================
+
               Center(
-                child: Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 90,
-                  color: primaryColor,
+                child: Image.asset(
+                  'assets/logo.png',
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 90,
+                      color: primaryColor,
+                    );
+                  },
                 ),
               ),
+
               const SizedBox(height: 12),
 
-              // Judul "Selamat Datang !"
+              // =========================
+              // JUDUL
+              // =========================
+
               const Text(
                 'Selamat Datang !',
                 textAlign: TextAlign.center,
@@ -68,9 +248,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black,
                 ),
               ),
+
               const SizedBox(height: 28),
 
-              // 1. Input Nama
+              // =========================
+              // NAMA
+              // =========================
+
               const Text(
                 'Nama',
                 style: TextStyle(
@@ -79,14 +263,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               TextField(
                 controller: _nameController,
-                decoration: _inputDecoration(''),
+                decoration: _inputDecoration(
+                  'Masukkan nama',
+                ),
               ),
+
               const SizedBox(height: 16),
 
-              // 2. Input No handphone
+              // =========================
+              // NO HANDPHONE
+              // =========================
+
               const Text(
                 'No handphone',
                 style: TextStyle(
@@ -95,15 +287,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: _inputDecoration(''),
+                decoration: _inputDecoration(
+                  'Masukkan no handphone',
+                ),
               ),
+
               const SizedBox(height: 16),
 
-              // 3. Input Email
+              // =========================
+              // EMAIL
+              // =========================
+
               const Text(
                 'Email',
                 style: TextStyle(
@@ -112,15 +312,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: _inputDecoration(''),
+                decoration: _inputDecoration(
+                  'Masukkan email',
+                ),
               ),
+
               const SizedBox(height: 16),
 
-              // 4. Input Password
+              // =========================
+              // PASSWORD
+              // =========================
+
               const Text(
                 'Password',
                 style: TextStyle(
@@ -129,11 +337,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               TextField(
                 controller: _passwordController,
                 obscureText: _obscureText,
-                decoration: _inputDecoration('Masukkan password').copyWith(
+                decoration: _inputDecoration(
+                  'Masukkan password',
+                ).copyWith(
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureText
@@ -149,9 +361,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
-              // 5. Input Alamat Lengkap
+              // =========================
+              // ALAMAT
+              // =========================
+
               const Text(
                 'Alamat Lengkap',
                 style: TextStyle(
@@ -160,43 +376,115 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               TextField(
                 controller: _addressController,
-                decoration: _inputDecoration(''),
+                maxLines: 2,
+                decoration: _inputDecoration(
+                  'Masukkan alamat lengkap',
+                ),
               ),
+
+              const SizedBox(height: 16),
+
+              // =========================
+              // PILIH ROLE
+              // =========================
+
+              const Text(
+                'Daftar sebagai',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              DropdownButtonFormField<String>(
+                initialValue: _selectedRole,
+                decoration: _inputDecoration(
+                  'Pilih role',
+                ).copyWith(
+                  prefixIcon: Icon(
+                    Icons.person_outline,
+                    color: primaryColor,
+                  ),
+                ),
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: 'buyer',
+                    child: Text('Pembeli'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'seller',
+                    child: Text('Penjual'),
+                  ),
+                ],
+                onChanged: _isLoading
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedRole = value;
+                          });
+                        }
+                      },
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                _selectedRole == 'seller'
+                    ? 'Anda akan diarahkan ke dashboard penjual.'
+                    : 'Anda akan diarahkan ke dashboard pembeli.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+
               const SizedBox(height: 32),
 
-              // Tombol DAFTAR
+              // =========================
+              // BUTTON DAFTAR
+              // =========================
+
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
+                    disabledBackgroundColor: Colors.grey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'DAFTAR',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'DAFTAR',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
+
               const SizedBox(height: 16),
             ],
           ),
@@ -205,26 +493,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Helper untuk styling dekorasi input field
-  InputDecoration _inputDecoration(String hintText) {
+  // =========================
+  // INPUT DECORATION
+  // =========================
+
+  InputDecoration _inputDecoration(
+    String hintText,
+  ) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400,
+        fontSize: 14,
+      ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 12,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(
+          color: Colors.grey,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderSide: BorderSide(
+          color: Colors.grey.shade400,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primaryColor, width: 1.5),
+        borderSide: BorderSide(
+          color: primaryColor,
+          width: 1.5,
+        ),
       ),
     );
   }
