@@ -25,12 +25,10 @@ class SellerDashboardScreen extends StatefulWidget {
   const SellerDashboardScreen({super.key});
 
   @override
-  State<SellerDashboardScreen> createState() =>
-      _SellerDashboardScreenState();
+  State<SellerDashboardScreen> createState() => _SellerDashboardScreenState();
 }
 
-class _SellerDashboardScreenState
-    extends State<SellerDashboardScreen> {
+class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
   static const Color hijau = Color(0xFF006B42);
   static const Color latar = Color(0xFFF5F7F6);
 
@@ -66,17 +64,11 @@ class _SellerDashboardScreenState
         elevation: 0,
         title: Text(
           _judul[_selectedIndex],
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
       ),
       body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: halaman,
-        ),
+        child: IndexedStack(index: _selectedIndex, children: halaman),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -130,11 +122,7 @@ class _SellerDashboardScreenState
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.storefront_outlined,
-                color: Colors.white,
-                size: 38,
-              ),
+              Icon(Icons.storefront_outlined, color: Colors.white, size: 38),
               SizedBox(height: 12),
               Text(
                 'Selamat Datang, Penjual!',
@@ -148,10 +136,7 @@ class _SellerDashboardScreenState
               Text(
                 'Kelola produk dan pesanan UMKM kamu '
                 'dalam satu tempat.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 13),
               ),
             ],
           ),
@@ -232,9 +217,7 @@ class _SellerDashboardScreenState
           aksi: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const LaporanPenjualanScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const LaporanPenjualanScreen()),
             );
           },
         ),
@@ -253,9 +236,7 @@ class _SellerDashboardScreenState
           aksi: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const PengaturanAkunScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const PengaturanAkunScreen()),
             );
           },
         ),
@@ -276,19 +257,14 @@ class _SellerDashboardScreenState
             const Expanded(
               child: Text(
                 'Produk Saya',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
               ),
             ),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.push( 
+                Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const TambahProdukScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const TambahProdukScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -331,10 +307,7 @@ class _SellerDashboardScreenState
       children: [
         const Text(
           'Pesanan Pembeli',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
 
         const SizedBox(height: 8),
@@ -362,8 +335,7 @@ class _SellerDashboardScreenState
         _kartuKosong(
           ikon: Icons.shopping_bag_outlined,
           judul: 'Belum Ada Pesanan',
-          deskripsi:
-              'Pesanan dari pembeli akan muncul di halaman ini.',
+          deskripsi: 'Pesanan dari pembeli akan muncul di halaman ini.',
         ),
       ],
     );
@@ -388,27 +360,17 @@ class _SellerDashboardScreenState
               CircleAvatar(
                 radius: 38,
                 backgroundColor: Color(0xFFE0F2E9),
-                child: Icon(
-                  Icons.storefront,
-                  size: 40,
-                  color: hijau,
-                ),
+                child: Icon(Icons.storefront, size: 40, color: hijau),
               ),
               SizedBox(height: 12),
               Text(
                 'Toko UMKM Saya',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               SizedBox(height: 6),
               Text(
                 'Lengkapi informasi toko kamu.',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ],
           ),
@@ -441,9 +403,7 @@ class _SellerDashboardScreenState
           aksi: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const LaporanPenjualanScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const LaporanPenjualanScreen()),
             );
           },
         ),
@@ -455,9 +415,7 @@ class _SellerDashboardScreenState
           aksi: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const PengaturanAkunScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const PengaturanAkunScreen()),
             );
           },
         ),
@@ -479,10 +437,7 @@ class _SellerDashboardScreenState
   Widget _judulBagian(String judul) {
     return Text(
       judul,
-      style: const TextStyle(
-        fontSize: 17,
-        fontWeight: FontWeight.w500,
-      ),
+      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
     );
   }
 
@@ -505,19 +460,10 @@ class _SellerDashboardScreenState
           const SizedBox(height: 12),
           Text(
             nilai,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 4),
-          Text(
-            judul,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
+          Text(judul, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
     );
@@ -545,19 +491,10 @@ class _SellerDashboardScreenState
         ),
         title: Text(
           judul,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
-        subtitle: Text(
-          deskripsi,
-          style: const TextStyle(fontSize: 12),
-        ),
-        trailing: const Icon(
-          Icons.chevron_right,
-          color: Colors.grey,
-        ),
+        subtitle: Text(deskripsi, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       ),
     );
   }
@@ -579,19 +516,13 @@ class _SellerDashboardScreenState
           const SizedBox(height: 16),
           Text(
             judul,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           Text(
             deskripsi,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 13,
-            ),
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
           ),
         ],
       ),
@@ -603,17 +534,12 @@ class _SellerDashboardScreenState
       label: Text(judul),
       backgroundColor: const Color(0xFFE0F2E9),
       side: BorderSide.none,
-      labelStyle: const TextStyle(
-        color: hijau,
-        fontSize: 12,
-      ),
+      labelStyle: const TextStyle(color: hijau, fontSize: 12),
     );
   }
 
   void _pesan(String isi) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(isi)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isi)));
   }
 
   void _konfirmasiKeluar() {
@@ -633,14 +559,9 @@ class _SellerDashboardScreenState
             TextButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
-                _pesan(
-                  'Hubungkan tombol ini ke Supabase Auth untuk logout.',
-                );
+                _pesan('Hubungkan tombol ini ke Supabase Auth untuk logout.');
               },
-              child: const Text(
-                'Keluar',
-                style: TextStyle(color: hijau),
-              ),
+              child: const Text('Keluar', style: TextStyle(color: hijau)),
             ),
           ],
         );
@@ -662,7 +583,7 @@ class TambahProdukScreen extends StatefulWidget {
 
 class _TambahProdukScreenState extends State<TambahProdukScreen> {
   static const Color primaryColor = Color(0xFF006B42);
-  
+
   // List untuk menyimpan varian produk yang ditambahkan
   final List<String> _daftarVarian = [];
   final TextEditingController _controllerVarian = TextEditingController();
@@ -696,7 +617,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Tambah', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Tambah',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -763,10 +687,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                     SizedBox(height: 2),
                     Text(
                       '(1-5 foto)',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -784,7 +705,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
               decoration: InputDecoration(
                 hintText: 'Contoh: Kopi Arabika',
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade300),
@@ -805,7 +729,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade300),
@@ -820,10 +747,12 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                 style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
               ),
               items: ['Makanan', 'Minuman', 'Kerajinan', 'Fashion', 'Lainnya']
-                  .map((kategori) => DropdownMenuItem(
-                        value: kategori,
-                        child: Text(kategori),
-                      ))
+                  .map(
+                    (kategori) => DropdownMenuItem(
+                      value: kategori,
+                      child: Text(kategori),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {},
             ),
@@ -838,15 +767,24 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                     children: [
                       const Text(
                         'Harga',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextField(
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'Rp 0',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -867,15 +805,24 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                     children: [
                       const Text(
                         'Stok',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextField(
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: '0',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: Colors.grey.shade300),
