@@ -3,10 +3,12 @@ import 'detail_product_screens.dart';
 
 class KategoriScreen extends StatelessWidget {
   final String kategori;
+  final VoidCallback? onBack;
 
   const KategoriScreen({
     super.key,
     required this.kategori,
+    this.onBack,
   });
 
   final Color primaryColor = const Color(0xFF006B42);
@@ -76,18 +78,33 @@ class KategoriScreen extends StatelessWidget {
       // =========================
       // APP BAR
       // =========================
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          kategori,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+     
+appBar: AppBar(
+  backgroundColor: primaryColor,
+  foregroundColor: Colors.white,
+  elevation: 0,
+
+  // Tombol kembali ke daftar kategori
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      if (onBack != null) {
+        onBack!();
+      } else {
+        Navigator.maybePop(context);
+      }
+    },
+  ),
+
+  title: Text(
+    kategori,
+    style: const TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
 
       // =========================
       // BODY

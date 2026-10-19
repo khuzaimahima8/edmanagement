@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:edmanagement/screens/penjual/seller_dashboard.dart';
 import 'register_screens.dart';
-import 'pembeli/home_screens.dart';
+import 'pembeli/marketplace_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
+            builder: (context) => const MarketplaceShell(),
           ),
         );
       }
