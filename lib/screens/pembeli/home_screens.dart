@@ -1,10 +1,8 @@
+
 import 'package:flutter/material.dart';
 
 import 'detail_product_screens.dart';
-import 'cart_screens.dart';
-import 'akun_screens.dart';
 import 'kategori_screens.dart';
-import 'kategori_menu_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,27 +14,27 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Color primaryColor = const Color(0xFF006B42);
 
-  int _selectedIndex = 0;
+  // Controller dan kata pencarian
+  final TextEditingController _searchController =
+      TextEditingController();
 
+  String _kataPencarian = '';
   String _namaUser = 'Pengguna Dummy';
-  String _emailUser = 'user.frontend@example.com';
 
   // =========================
   // AMBIL DATA USER (MOCK)
   // =========================
   Future<void> _getNamaUser() async {
     try {
-      debugPrint('==============================');
       debugPrint('HOME - MOCK FRONT-END MODE');
-      debugPrint('==============================');
 
-      // Simulasi jeda waktu loading sebentar
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(
+        const Duration(milliseconds: 300),
+      );
 
       if (mounted) {
         setState(() {
           _namaUser = 'Pengguna Dummy';
-          _emailUser = 'user.frontend@example.com';
         });
       }
     } catch (e) {
@@ -103,35 +101,20 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   // =========================
-  // BOTTOM NAVIGATION
+  // FILTER PENCARIAN PRODUK
   // =========================
-  void _onBottomNavigationTap(int index) {
-    // Keranjang
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const CartScreen(),
-        ),
-      );
-      return;
+  List<Map<String, String>> get _produkTerfilter {
+    final kataKunci = _kataPencarian.trim().toLowerCase();
+
+    if (kataKunci.isEmpty) {
+      return products;
     }
 
-    // Kategori
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => KategoriMenuScreen(),
-        ),
-      );
-      return;
-    }
+    return products.where((produk) {
+      final nama = produk['name'] ?? '';
 
-    // Beranda / Akun
-    setState(() {
-      _selectedIndex = index;
-    });
+      return nama.toLowerCase().contains(kataKunci);
+    }).toList();
   }
 
   // =========================
@@ -149,12 +132,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // =========================
+  // BUKA DETAIL PRODUK
+  // =========================
+  void _openProduct(Map<String, String> product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailProductScreen(
+          product: product,
+        ),
+      ),
+    );
+  }
+
+  // =========================
   // HALAMAN BERANDA
   // =========================
   Widget _buildHomeContent() {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -165,25 +162,27 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hi, $_namaUser',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hi, $_namaUser',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Temukan produk UMKM\nterbaik di sini',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Temukan produk UMKM\nterbaik di sini',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 CircleAvatar(
                   radius: 24,
@@ -203,9 +202,16 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
 
             // =========================
-            // SEARCH
+            // SEARCH PRODUK
             // =========================
             TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _kataPencarian = value;
+                });
+              },
+              textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: 'Cari Produk',
                 hintStyle: TextStyle(
@@ -216,6 +222,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.search,
                   color: Colors.grey,
                 ),
+                suffixIcon: _kataPencarian.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Hapus pencarian',
+                        onPressed: () {
+                          _searchController.clear();
+
+                          setState(() {
+                            _kataPencarian = '';
+                          });
+                        },
+                      )
+                    : null,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 0,
                 ),
@@ -261,7 +280,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         radius: 24,
                         backgroundColor: primaryColor,
                         child: Icon(
-                          cat['icon'] as IconData? ?? Icons.category,
+                          cat['icon'] as IconData? ??
+                              Icons.category,
                           color: Colors.white,
                           size: 22,
                         ),
@@ -285,115 +305,176 @@ class _HomeScreenState extends State<HomeScreen> {
             // PRODUK TERBARU
             // =========================
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Produk Terbaru',
-                  style: TextStyle(
+                Text(
+                  _kataPencarian.isEmpty
+                      ? 'Produk Terbaru'
+                      : 'Hasil Pencarian',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: primaryColor,
+                if (_kataPencarian.isEmpty)
+                  GestureDetector(
+                    onTap: () {},
+                    child: Text(
+                      'Lihat Semua',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: primaryColor,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
-            // =========================
-            // GRID PRODUK
-            // =========================
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: products.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
+            if (_kataPencarian.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '${_produkTerfilter.length} produk ditemukan',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
               ),
-              itemBuilder: (context, index) {
-                final item = products[index];
 
-                final imagePath = item['image'] ?? '';
-                final name = item['name'] ?? '';
-                final price = item['price'] ?? '';
+            const SizedBox(height: 8),
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailProductScreen(
-                          product: item,
-                        ),
-                      ),
-                    );
-                  },
+            // =========================
+            // HASIL PENCARIAN / GRID PRODUK
+            // =========================
+            if (_produkTerfilter.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 40,
+                  horizontal: 16,
+                ),
+                child: Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: imagePath.isNotEmpty
-                              ? Image.asset(
-                                  imagePath,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) {
-                                    return Container(
-                                      color: Colors.grey.shade300,
-                                      child: const Icon(
-                                        Icons.image_not_supported,
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
-                                )
-                              : Container(
-                                  color: Colors.grey.shade300,
-                                  child: const Icon(
-                                    Icons.image,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                        ),
+                      Icon(
+                        Icons.search_off,
+                        size: 60,
+                        color: Colors.grey.shade400,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          fontSize: 12,
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Produk tidak ditemukan',
+                        style: TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
                         ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Coba gunakan kata kunci lainnya.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics:
+                    const NeverScrollableScrollPhysics(),
+                itemCount: _produkTerfilter.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.75,
+                ),
+                itemBuilder: (context, index) {
+                  final item = _produkTerfilter[index];
+
+                  final imagePath = item['image'] ?? '';
+                  final name = item['name'] ?? '';
+                  final price = item['price'] ?? '';
+
+                  return GestureDetector(
+                    onTap: () {
+                      _openProduct(item);
+                    },
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(16),
+                            child: imagePath.isNotEmpty
+                                ? Image.asset(
+                                    imagePath,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (
+                                      context,
+                                      error,
+                                      stackTrace,
+                                    ) {
+                                      return Container(
+                                        color:
+                                            Colors.grey.shade300,
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons
+                                                .image_not_supported,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: Colors.grey.shade300,
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.image,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          price,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -407,49 +488,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _selectedIndex == 3
-          ? AkunScreen(
-              nama: _namaUser,
-              email: _emailUser,
-              showScaffold: false,
-              onProfileUpdated: _getNamaUser,
-            )
-          : _buildHomeContent(),
-
-      // =========================
-      // BOTTOM NAVIGATION
-      // =========================
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onBottomNavigationTap,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_outlined),
-            activeIcon: Icon(Icons.grid_view),
-            label: 'Kategori',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart),
-            label: 'Keranjang',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Akun',
-          ),
-        ],
-      ),
+      body: _buildHomeContent(),
     );
+  }
+
+  // =========================
+  // BERSIHKAN CONTROLLER
+  // =========================
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
