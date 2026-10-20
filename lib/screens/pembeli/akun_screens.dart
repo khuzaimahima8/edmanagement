@@ -1,5 +1,7 @@
 import 'package:edmanagement/screens/pembeli/edit_akun_screens.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'pesanan_saya_screens.dart';
 import 'alamat_saya_screens.dart';
 
@@ -28,7 +30,10 @@ class AkunScreen extends StatelessWidget {
   // =========================
   Future<void> _logout(BuildContext context) async {
     try {
+      await Supabase.instance.client.auth.signOut();
+
       if (!context.mounted) return;
+
       Navigator.pushNamedAndRemoveUntil(
         context,
         '/',
