@@ -152,35 +152,44 @@ class AkunScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 16),
 
+                          
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   nama,
                                   maxLines: 1,
-                                  overflow:
-                                      TextOverflow.ellipsis,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontSize: 18,
-                                    fontWeight:
-                                        FontWeight.bold,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  email.isEmpty
-                                      ? 'Email belum tersedia'
-                                      : email,
+                                  email.isEmpty ? 'Email belum tersedia' : email,
                                   maxLines: 1,
-                                  overflow:
-                                      TextOverflow.ellipsis,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.blue,
-                                    decoration:
-                                        TextDecoration.underline,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () => _editAkun(context),
+                                  icon: const Icon(Icons.edit_outlined, size: 16),
+                                  label: const Text('Edit Profil'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: primaryColor,
+                                    side: BorderSide(color: primaryColor),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    visualDensity: VisualDensity.compact,
                                   ),
                                 ),
                               ],
