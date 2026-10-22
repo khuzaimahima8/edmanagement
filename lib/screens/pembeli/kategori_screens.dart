@@ -1,15 +1,18 @@
- import 'package:flutter/material.dart';
+
+import 'package:flutter/material.dart';
 import 'detail_product_screens.dart';
 
 class KategoriScreen extends StatelessWidget {
   final String kategori;
+  final VoidCallback? onBack;
+
+  final Color primaryColor = const Color(0xFF006B42);
 
   const KategoriScreen({
     super.key,
     required this.kategori,
+    this.onBack,
   });
-
-  final Color primaryColor = const Color(0xFF006B42);
 
   // =========================
   // SEMUA PRODUK
@@ -39,8 +42,6 @@ class KategoriScreen extends StatelessWidget {
       'image': 'assets/tiktik daun kelor.jpeg',
       'kategori': 'Makanan',
     },
-
-    // Contoh produk tambahan
     {
       'name': 'Kerajinan Bambu',
       'price': 'Rp35.000',
@@ -56,14 +57,23 @@ class KategoriScreen extends StatelessWidget {
   ];
 
   // =========================
-  // AMBIL PRODUK SESUAI KATEGORI
+  // FILTER PRODUK BERDASARKAN KATEGORI
   // =========================
   List<Map<String, String>> get filteredProducts {
     return products
-        .where(
-          (product) => product['kategori'] == kategori,
-        )
+        .where((product) => product['kategori'] == kategori)
         .toList();
+  }
+
+  // =========================
+  // FUNGSI KEMBALI
+  // =========================
+  void _kembali(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+    } else {
+      Navigator.maybePop(context);
+    }
   }
 
   @override
@@ -80,6 +90,10 @@ class KategoriScreen extends StatelessWidget {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => _kembali(context),
+        ),
         title: Text(
           kategori,
           style: const TextStyle(
@@ -95,8 +109,7 @@ class KategoriScreen extends StatelessWidget {
       body: categoryProducts.isEmpty
           ? Center(
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.inventory_2_outlined,
@@ -126,52 +139,38 @@ class KategoriScreen extends StatelessWidget {
               ),
               itemBuilder: (context, index) {
                 final product = categoryProducts[index];
-
-                final imagePath =
-                    product['image'] ?? '';
-
-                final name =
-                    product['name'] ?? '';
-
-                final price =
-                    product['price'] ?? '';
+                final imagePath = product['image'] ?? '';
+                final name = product['name'] ?? '';
+                final price = product['price'] ?? '';
 
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            DetailProductScreen(
+                        builder: (context) => DetailProductScreen(
                           product: product,
                         ),
                       ),
                     );
                   },
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // =========================
-                      // GAMBAR
-                      // =========================
+                      // GAMBAR PRODUK
                       Expanded(
                         child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16),
                           child: Image.asset(
                             imagePath,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) {
+                            errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 width: double.infinity,
-                                color:
-                                    Colors.grey.shade300,
+                                color: Colors.grey.shade300,
                                 child: const Icon(
-                                  Icons
-                                      .image_not_supported,
+                                  Icons.image_not_supported,
                                   color: Colors.grey,
                                   size: 40,
                                 ),
@@ -183,14 +182,11 @@ class KategoriScreen extends StatelessWidget {
 
                       const SizedBox(height: 8),
 
-                      // =========================
                       // NAMA PRODUK
-                      // =========================
                       Text(
                         name,
                         maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -199,9 +195,7 @@ class KategoriScreen extends StatelessWidget {
 
                       const SizedBox(height: 3),
 
-                      // =========================
-                      // HARGA
-                      // =========================
+                      // HARGA PRODUK
                       Text(
                         price,
                         style: TextStyle(
