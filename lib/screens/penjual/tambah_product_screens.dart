@@ -1,20 +1,16 @@
-
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TambahProdukScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
 
-  const TambahProdukScreen({
-    super.key,
-    this.product,
-  });
+  const TambahProdukScreen({super.key, this.product});
 
   @override
-  State<TambahProdukScreen> createState() =>
-      _TambahProdukScreenState();
+  State<TambahProdukScreen> createState() => _TambahProdukScreenState();
 }
 
 class _TambahProdukScreenState extends State<TambahProdukScreen> {
@@ -22,18 +18,14 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
   static const Color latar = Color(0xFFF5F7F6);
 
   final _formKey = GlobalKey<FormState>();
+  final SupabaseClient supabase = Supabase.instance.client;
   final ImagePicker _picker = ImagePicker();
 
-  final TextEditingController _namaController =
-      TextEditingController();
-  final TextEditingController _hargaController =
-      TextEditingController();
-  final TextEditingController _stokController =
-      TextEditingController();
-  final TextEditingController _deskripsiController =
-      TextEditingController();
-  final TextEditingController _varianController =
-      TextEditingController();
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _hargaController = TextEditingController();
+  final TextEditingController _stokController = TextEditingController();
+  final TextEditingController _deskripsiController = TextEditingController();
+  final TextEditingController _varianController = TextEditingController();
 
   final List<String> _kategoriList = [
     'Makanan',
@@ -44,8 +36,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
   ];
 
   String? _kategori;
+  XFile? _fotoFile;
   Uint8List? _fotoBytes;
   String? _fotoLama;
+
   bool _loading = false;
 
   bool get _modeEdit => widget.product != null;
@@ -57,17 +51,13 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
     final p = widget.product;
 
     if (p != null) {
-      _namaController.text =
-          p['nama_produk']?.toString() ?? '';
+      _namaController.text = p['nama_produk']?.toString() ?? '';
 
-      _hargaController.text =
-          p['harga']?.toString() ?? '';
+      _hargaController.text = p['harga']?.toString() ?? '';
 
-      _stokController.text =
-          p['stok']?.toString() ?? '';
+      _stokController.text = p['stok']?.toString() ?? '';
 
-      _deskripsiController.text =
-          p['deskripsi']?.toString() ?? '';
+      _deskripsiController.text = p['deskripsi']?.toString() ?? '';
 
       final kategoriLama = p['kategori']?.toString();
 
@@ -77,17 +67,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
       _fotoLama = p['foto_url']?.toString();
 
-      // Mendukung foto lokal dari data produk sebelumnya.
-      final fotoLokal = p['foto_bytes'];
-      if (fotoLokal is Uint8List) {
-        _fotoBytes = fotoLokal;
-      }
-
       final dataVarian = p['varian'];
 
       if (dataVarian is List) {
-        _varianController.text =
-            dataVarian.map((v) => v.toString()).join(', ');
+        _varianController.text = dataVarian.map((v) => v.toString()).join(', ');
       } else if (dataVarian is String) {
         _varianController.text = dataVarian;
       }
@@ -101,8 +84,13 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
     _stokController.dispose();
     _deskripsiController.dispose();
     _varianController.dispose();
+
     super.dispose();
   }
+
+  // ==================================================
+  // PESAN APLIKASI
+  // ==================================================
 
   void _pesan(String pesan) {
     if (!mounted) return;
@@ -110,11 +98,14 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(pesan)),
+        SnackBar(content: Text(pesan), duration: const Duration(seconds: 5)),
       );
   }
 
-  // PILIH FOTO DARI GALERI TANPA UPLOAD KE SERVER
+  // ==================================================
+  // PILIH FOTO
+  // ==================================================
+
   Future<void> _pilihFoto() async {
     try {
       final hasil = await _picker.pickImage(
@@ -130,15 +121,65 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
       if (!mounted) return;
 
       setState(() {
+        _fotoFile = hasil;
         _fotoBytes = bytes;
-        _fotoLama = null;
       });
-    } catch (e) {
+
+      debugPrint('FOTO DIPILIH: ${hasil.name}');
+    } catch (e, stackTrace) {
+      debugPrint('ERROR PILIH FOTO: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
       _pesan('Gagal memilih foto: $e');
     }
   }
 
-  // FORMAT VARIAN PRODUK
+  // ==================================================
+  // UPLOAD FOTO KE SUPABASE STORAGE
+  // ==================================================
+
+  Future<String?> _uploadFoto(String userId) async {
+    // Jika tidak memilih foto baru, gunakan foto lama.
+    if (_fotoFile == null || _fotoBytes == null) {
+      return _fotoLama;
+    }
+
+    final namaFile = _fotoFile!.name;
+
+    final ekstensi = namaFile.contains('.')
+        ? namaFile.split('.').last.toLowerCase()
+        : 'jpg';
+
+    final contentType = switch (ekstensi) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/jpeg',
+    };
+
+    final path = '$userId/${DateTime.now().millisecondsSinceEpoch}.$ekstensi';
+
+    debugPrint('MULAI UPLOAD FOTO: $path');
+
+    await supabase.storage
+        .from('product-images')
+        .uploadBinary(
+          path,
+          _fotoBytes!,
+          fileOptions: FileOptions(contentType: contentType, upsert: false),
+        );
+
+    final fotoUrl = supabase.storage.from('product-images').getPublicUrl(path);
+
+    debugPrint('UPLOAD FOTO BERHASIL: $fotoUrl');
+
+    return fotoUrl;
+  }
+
+  // ==================================================
+  // FORMAT VARIAN
+  // ==================================================
+
   List<String> _ambilVarian() {
     return _varianController.text
         .split(',')
@@ -148,14 +189,34 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
         .toList();
   }
 
-  // SIMPAN KE DATA LOKAL MELALUI HALAMAN SEBELUMNYA
+  // ==================================================
+  // SIMPAN PRODUK
+  // ==================================================
+
   Future<void> _simpanProduk() async {
+    debugPrint('================================');
+    debugPrint('TOMBOL SIMPAN PRODUK DITEKAN');
+    debugPrint('MODE EDIT: $_modeEdit');
+
+    // Periksa validasi formulir.
     if (!_formKey.currentState!.validate()) {
+      debugPrint('VALIDASI FORMULIR GAGAL');
+      _pesan('Periksa kembali data produk yang wajib diisi.');
       return;
     }
 
-    if (_kategori == null) {
-      _pesan('Silakan pilih kategori produk.');
+    final user = supabase.auth.currentUser;
+
+    debugPrint('USER ID: ${user?.id}');
+    debugPrint('NAMA PRODUK: ${_namaController.text}');
+    debugPrint('KATEGORI: $_kategori');
+    debugPrint('HARGA: ${_hargaController.text}');
+    debugPrint('STOK: ${_stokController.text}');
+    debugPrint('VARIAN: ${_ambilVarian()}');
+
+    if (user == null) {
+      debugPrint('ERROR: USER BELUM LOGIN');
+      _pesan('Sesi login tidak ditemukan. Silakan login kembali.');
       return;
     }
 
@@ -166,13 +227,15 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
     });
 
     try {
+      // 1. Upload foto jika dipilih.
+      final fotoUrl = await _uploadFoto(user.id);
+
+      // 2. Siapkan data untuk database.
       final harga = double.parse(
         _hargaController.text.trim().replaceAll(',', '.'),
       );
 
-      final stok = int.parse(
-        _stokController.text.trim(),
-      );
+      final stok = int.parse(_stokController.text.trim());
 
       final Map<String, dynamic> data = {
         'nama_produk': _namaController.text.trim(),
@@ -181,29 +244,102 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
         'stok': stok,
         'deskripsi': _deskripsiController.text.trim(),
         'varian': _ambilVarian(),
-        'foto_url': _fotoBytes == null ? _fotoLama : '',
-        'foto_bytes': _fotoBytes,
+        'foto_url': fotoUrl,
       };
 
+      debugPrint('DATA YANG AKAN DISIMPAN: $data');
+
+      // 3. Tambah atau edit produk.
       if (_modeEdit) {
-        data['id'] = widget.product!['id'];
+        debugPrint('MULAI MEMPERBARUI PRODUK');
+
+        final hasil = await supabase
+            .from('products')
+            .update(data)
+            .eq('id', widget.product!['id'])
+            .eq('seller_id', user.id)
+            .select();
+
+        debugPrint('HASIL UPDATE PRODUK: $hasil');
+
+        if (hasil.isEmpty) {
+          throw Exception(
+            'Tidak ada produk yang diperbarui. '
+            'Periksa ID produk dan izin akses penjual.',
+          );
+        }
+      } else {
+        debugPrint('MULAI MENAMBAHKAN PRODUK');
+
+        data['seller_id'] = user.id;
+
+        // SELECT digunakan untuk memastikan hasil insert
+        // dikembalikan oleh Supabase.
+        final hasil = await supabase.from('products').insert(data).select();
+
+        debugPrint('HASIL INSERT PRODUK: $hasil');
+
+        if (hasil.isEmpty) {
+          throw Exception(
+            'Supabase tidak mengembalikan data produk '
+            'setelah penyimpanan.',
+          );
+        }
       }
 
       if (!mounted) return;
 
-      // Mengirim data ke halaman sebelumnya.
-      // Tidak ada database atau upload server.
-      Navigator.pop(context, data);
-    } catch (e) {
-      _pesan('Gagal memproses data produk: $e');
+      debugPrint('SIMPAN PRODUK BERHASIL');
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              _modeEdit
+                  ? 'Produk berhasil diperbarui.'
+                  : 'Produk berhasil ditambahkan.',
+            ),
+            backgroundColor: hijau,
+          ),
+        );
+
+      // Kirim true agar Kelola Produk memuat ulang daftar.
+      Navigator.pop(context, true);
+    } on StorageException catch (e, stackTrace) {
+      debugPrint('ERROR STORAGE: ${e.message}');
+      debugPrint('DETAIL STORAGE: ${e.error}');
+      debugPrintStack(stackTrace: stackTrace);
+
+      _pesan('Gagal mengunggah foto: ${e.message}');
+    } on PostgrestException catch (e, stackTrace) {
+      debugPrint('ERROR DATABASE: ${e.message}');
+      debugPrint('KODE DATABASE: ${e.code}');
+      debugPrint('DETAIL DATABASE: ${e.details}');
+      debugPrint('HINT DATABASE: ${e.hint}');
+      debugPrintStack(stackTrace: stackTrace);
+
+      _pesan('Gagal menyimpan produk: ${e.message}');
+    } catch (e, stackTrace) {
+      debugPrint('ERROR LAINNYA: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      _pesan('Gagal menyimpan produk: $e');
     } finally {
       if (mounted) {
         setState(() {
           _loading = false;
         });
       }
+
+      debugPrint('PROSES SIMPAN PRODUK SELESAI');
+      debugPrint('================================');
     }
   }
+
+  // ==================================================
+  // KOMPONEN INPUT
+  // ==================================================
 
   Widget _field({
     required String label,
@@ -218,10 +354,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -236,6 +369,11 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
             contentPadding: const EdgeInsets.all(14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -247,60 +385,16 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
     );
   }
 
-  Widget _placeholderFoto() {
-    return Container(
-      width: double.infinity,
-      color: Colors.grey.shade100,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.add_photo_alternate_outlined,
-            size: 48,
-            color: Colors.grey.shade500,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tambahkan foto produk',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tampilanFoto() {
-    if (_fotoBytes != null) {
-      return Image.memory(
-        _fotoBytes!,
-        width: double.infinity,
-        fit: BoxFit.cover,
-      );
-    }
-
-    if (_fotoLama != null && _fotoLama!.isNotEmpty) {
-      return Image.network(
-        _fotoLama!,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _placeholderFoto();
-        },
-      );
-    }
-
-    return _placeholderFoto();
-  }
+  // ==================================================
+  // TAMPILAN FORM TAMBAH / EDIT PRODUK
+  // ==================================================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: latar,
       appBar: AppBar(
-        title: Text(
-          _modeEdit ? 'Edit Produk' : 'Tambah Produk',
-        ),
+        title: Text(_modeEdit ? 'Edit Produk' : 'Tambah Produk'),
         backgroundColor: hijau,
         foregroundColor: Colors.white,
       ),
@@ -309,12 +403,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // FOTO PRODUK
             const Text(
               'Foto Produk',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
 
@@ -327,11 +419,24 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: _tampilanFoto(),
+                child: _fotoBytes != null
+                    ? Image.memory(
+                        _fotoBytes!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      )
+                    : (_fotoLama != null && _fotoLama!.isNotEmpty)
+                    ? Image.network(
+                        _fotoLama!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _placeholderFoto();
+                        },
+                      )
+                    : _placeholderFoto(),
               ),
             ),
 
@@ -339,9 +444,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             OutlinedButton.icon(
               onPressed: _loading ? null : _pilihFoto,
-              icon: const Icon(
-                Icons.add_photo_alternate_outlined,
-              ),
+              icon: const Icon(Icons.add_photo_alternate_outlined),
               label: const Text('Pilih Foto dari Galeri'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: hijau,
@@ -351,6 +454,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             const SizedBox(height: 22),
 
+            // NAMA PRODUK
             _field(
               label: 'Nama Produk',
               controller: _namaController,
@@ -365,12 +469,10 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             const SizedBox(height: 18),
 
+            // KATEGORI
             const Text(
               'Kategori',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
 
@@ -408,12 +510,12 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             const SizedBox(height: 18),
 
+            // HARGA
             _field(
               label: 'Harga (Rp)',
               controller: _hargaController,
               hint: 'Contoh: 17000',
-              keyboardType:
-                  const TextInputType.numberWithOptions(
+              keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               validator: (v) {
@@ -431,6 +533,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             const SizedBox(height: 18),
 
+            // STOK
             _field(
               label: 'Stok Produk',
               controller: _stokController,
@@ -440,7 +543,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                 final stok = int.tryParse((v ?? '').trim());
 
                 if (stok == null || stok < 0) {
-                  return 'Stok harus 0 atau lebih';
+                  return 'Stok harus berupa angka 0 atau lebih';
                 }
 
                 return null;
@@ -449,6 +552,7 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
 
             const SizedBox(height: 18),
 
+            // VARIAN
             _field(
               label: 'Varian Produk (Opsional)',
               controller: _varianController,
@@ -459,37 +563,52 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
             const SizedBox(height: 6),
 
             const Text(
-              'Pisahkan setiap varian dengan tanda koma.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              'Pisahkan setiap varian dengan tanda koma (,). '
+              'Contoh: Hitam, Cokelat, Putih.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
 
             const SizedBox(height: 18),
 
+            // DESKRIPSI
             _field(
               label: 'Deskripsi Produk',
               controller: _deskripsiController,
-              hint: 'Jelaskan detail produk...',
+              hint: 'Jelaskan detail dan keunggulan produk...',
               maxLines: 4,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Deskripsi produk wajib diisi';
                 }
+
                 return null;
               },
             ),
 
             const SizedBox(height: 28),
 
+            // TOMBOL SIMPAN
             SizedBox(
               height: 52,
               child: ElevatedButton(
-                onPressed: _loading ? null : _simpanProduk,
+                onPressed: _loading
+                    ? null
+                    : () {
+                        debugPrint('1. TOMBOL SIMPAN DIKLIK');
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tombol Simpan berhasil ditekan'),
+                          ),
+                        );
+
+                        _simpanProduk();
+                      },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: hijau,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: hijau.withValues(alpha: 0.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -504,15 +623,40 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
                         ),
                       )
                     : Text(
-                        _modeEdit
-                            ? 'Simpan Perubahan'
-                            : 'Simpan Produk',
+                        _modeEdit ? 'Simpan Perubahan' : 'Simpan Produk',
                         style: const TextStyle(fontSize: 16),
                       ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ==================================================
+  // FOTO PENGGANTI
+  // ==================================================
+
+  Widget _placeholderFoto() {
+    return Container(
+      width: double.infinity,
+      color: Colors.grey.shade100,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_photo_alternate_outlined,
+            size: 48,
+            color: Colors.grey.shade500,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Tambahkan foto produk',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'laporan_penjualan_screens.dart';
 import 'pengaturan_akun_screens.dart';
@@ -21,32 +22,52 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
   static const Color hijau = Color(0xFF006B42);
   static const Color latar = Color(0xFFF5F7F6);
 
-  // Simulasi data ringkasan toko untuk front-end
   late Future<Map<String, int>> _ringkasanFuture;
 
   @override
   void initState() {
     super.initState();
-    _ringkasanFuture = _ambilRingkasanProdukMock();
+    _ringkasanFuture = _ambilRingkasanProduk();
   }
 
-  // Simulasi pengambilan data (mock data) tanpa database
-  Future<Map<String, int>> _ambilRingkasanProdukMock() async {
-    // Simulasi delay jaringan (opsional, bisa dihapus jika ingin instan)
-    await Future.delayed(const Duration(milliseconds: 500));
+  // Mengambil data produk milik penjual yang sedang login.
+  Future<Map<String, int>> _ambilRingkasanProduk() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
 
-    // Kembalikan data dummy
-    return {
-      'totalProduk': 12,
-      'totalStok': 158,
-    };
+    if (user == null) {
+      throw Exception('Sesi login tidak ditemukan. Silakan login kembali.');
+    }
+
+    final response = await supabase
+        .from('products')
+        .select('id, stok')
+        .eq('seller_id', user.id);
+
+    final List<Map<String, dynamic>> produk = List<Map<String, dynamic>>.from(
+      response,
+    );
+
+    int totalStok = 0;
+
+    for (final item in produk) {
+      totalStok += (item['stok'] as num?)?.toInt() ?? 0;
+    }
+
+    return {'totalProduk': produk.length, 'totalStok': totalStok};
   }
 
-  // Memuat ulang data dashboard (versi mock)
+  // Memuat ulang data dashboard.
   Future<void> _muatUlang() async {
     setState(() {
-      _ringkasanFuture = _ambilRingkasanProdukMock();
+      _ringkasanFuture = _ambilRingkasanProduk();
     });
+
+    try {
+      await _ringkasanFuture;
+    } catch (_) {
+      // Error ditampilkan oleh FutureBuilder.
+    }
   }
 
   @override
@@ -103,7 +124,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             const SizedBox(height: 12),
 
             // ==========================================
-            // RINGKASAN DATA UI
+            // RINGKASAN DATA SUPABASE
             // ==========================================
             FutureBuilder<Map<String, int>>(
               future: _ringkasanFuture,
@@ -136,6 +157,13 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                         const Text(
                           'Data produk gagal dimuat.',
                           textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Periksa koneksi, sesi login, dan '
+                          'izin akses tabel products di Supabase.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                         const SizedBox(height: 8),
                         TextButton.icon(
@@ -181,7 +209,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                           child: _kartuRingkasan(
                             ikon: Icons.shopping_bag_outlined,
                             judul: 'Pesanan Baru',
-                            nilai: '3',
+                            nilai: '—',
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -189,7 +217,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                           child: _kartuRingkasan(
                             ikon: Icons.payments_outlined,
                             judul: 'Penjualan',
-                            nilai: 'Rp 450rb',
+                            nilai: '—',
                           ),
                         ),
                       ],

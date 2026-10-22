@@ -1,5 +1,7 @@
-
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'tambah_product_screens.dart';
 
 class KelolaProdukScreen extends StatefulWidget {
   const KelolaProdukScreen({super.key});
@@ -12,203 +14,88 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
   static const Color hijau = Color(0xFF006B42);
   static const Color latar = Color(0xFFF5F7F6);
 
-  final List<Map<String, dynamic>> produk = [];
-  int _nextId = 1;
+  final SupabaseClient supabase = Supabase.instance.client;
 
-  String _formatHarga(dynamic harga) {
-    final nilai = double.tryParse(harga.toString()) ?? 0;
-    return 'Rp ${nilai.toStringAsFixed(0)}';
+  List<Map<String, dynamic>> produk = [];
+  bool loading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _ambilProduk();
   }
 
-  String _formatVarian(dynamic varian) {
-    if (varian == null) return '';
-    if (varian is List) {
-      return varian.join(', ');
+  // ==================================================
+  // AMBIL PRODUK DARI SUPABASE
+  // ==================================================
+  Future<void> _ambilProduk() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      if (!mounted) return;
+
+      setState(() {
+        loading = false;
+        errorMessage = 'Sesi login tidak ditemukan. Silakan login kembali.';
+      });
+      return;
     }
-    return varian.toString().trim();
-  }
-
-  void _tampilkanPesan(String pesan) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(pesan)),
-    );
-  }
-
-  // FORM TAMBAH DAN EDIT PRODUK TANPA DATABASE
-  Future<void> _bukaForm({Map<String, dynamic>? item}) async {
-    final namaController = TextEditingController(
-      text: item?['nama_produk']?.toString() ?? '',
-    );
-    final kategoriController = TextEditingController(
-      text: item?['kategori']?.toString() ?? '',
-    );
-    final hargaController = TextEditingController(
-      text: item?['harga']?.toString() ?? '',
-    );
-    final stokController = TextEditingController(
-      text: item?['stok']?.toString() ?? '',
-    );
-    final varianController = TextEditingController(
-      text: _formatVarian(item?['varian']),
-    );
-    final fotoController = TextEditingController(
-      text: item?['foto_url']?.toString() ?? '',
-    );
-    final deskripsiController = TextEditingController(
-      text: item?['deskripsi']?.toString() ?? '',
-    );
-
-    final hasil = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(
-            item == null ? 'Tambah Produk' : 'Edit Produk',
-          ),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _field(namaController, 'Nama Produk'),
-                  _field(kategoriController, 'Kategori'),
-                  _field(
-                    hargaController,
-                    'Harga',
-                    keyboardType: TextInputType.number,
-                  ),
-                  _field(
-                    stokController,
-                    'Stok',
-                    keyboardType: TextInputType.number,
-                  ),
-                  _field(
-                    varianController,
-                    'Varian (pisahkan dengan koma)',
-                  ),
-                  _field(fotoController, 'URL Foto Produk'),
-                  _field(
-                    deskripsiController,
-                    'Deskripsi Produk',
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: hijau,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                final nama = namaController.text.trim();
-                final harga = double.tryParse(
-                  hargaController.text.trim(),
-                );
-                final stok = int.tryParse(
-                  stokController.text.trim(),
-                );
-
-                if (nama.isEmpty) {
-                  _tampilkanPesan('Nama produk harus diisi.');
-                  return;
-                }
-
-                if (harga == null || harga < 0) {
-                  _tampilkanPesan('Masukkan harga yang valid.');
-                  return;
-                }
-
-                if (stok == null || stok < 0) {
-                  _tampilkanPesan('Masukkan stok yang valid.');
-                  return;
-                }
-
-                final varian = varianController.text
-                    .split(',')
-                    .map((v) => v.trim())
-                    .where((v) => v.isNotEmpty)
-                    .toList();
-
-                Navigator.pop(dialogContext, {
-                  'nama_produk': nama,
-                  'kategori': kategoriController.text.trim(),
-                  'harga': harga,
-                  'stok': stok,
-                  'varian': varian,
-                  'foto_url': fotoController.text.trim(),
-                  'deskripsi': deskripsiController.text.trim(),
-                });
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        );
-      },
-    );
-
-    namaController.dispose();
-    kategoriController.dispose();
-    hargaController.dispose();
-    stokController.dispose();
-    varianController.dispose();
-    fotoController.dispose();
-    deskripsiController.dispose();
-
-    if (!mounted || hasil == null) return;
 
     setState(() {
-      if (item == null) {
-        hasil['id'] = _nextId++;
-        produk.insert(0, hasil);
-      } else {
-        final index = produk.indexWhere(
-          (p) => p['id'] == item['id'],
-        );
-        if (index != -1) {
-          hasil['id'] = item['id'];
-          produk[index] = hasil;
-        }
-      }
+      loading = true;
+      errorMessage = null;
     });
 
-    _tampilkanPesan(
-      item == null
-          ? 'Produk berhasil ditambahkan.'
-          : 'Produk berhasil diperbarui.',
-    );
+    try {
+      final data = await supabase
+          .from('products')
+          .select()
+          .eq('seller_id', user.id)
+          .order('created_at', ascending: false);
+
+      if (!mounted) return;
+
+      setState(() {
+        produk = List<Map<String, dynamic>>.from(data);
+        loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        loading = false;
+        errorMessage = 'Gagal mengambil produk: $e';
+      });
+    }
   }
 
-  Widget _field(
-    TextEditingController controller,
-    String label, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      ),
+  // ==================================================
+  // TAMBAH DAN EDIT PRODUK
+  // ==================================================
+
+  Future<void> _bukaForm({Map<String, dynamic>? item}) async {
+    debugPrint('MEMBUKA FORM TAMBAH / EDIT PRODUK');
+    debugPrint('MODE EDIT: ${item != null}');
+
+    final hasil = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => TambahProdukScreen(product: item)),
     );
+
+    debugPrint('HASIL DARI FORM: $hasil');
+
+    if (!mounted) return;
+
+    if (hasil == true) {
+      debugPrint('MEMUAT ULANG DAFTAR PRODUK');
+      await _ambilProduk();
+    }
   }
 
-  // HAPUS PRODUK DARI DATA LOKAL
+  // ==================================================
+  // HAPUS PRODUK
+  // ==================================================
   Future<void> _hapusProduk(Map<String, dynamic> item) async {
     final setuju = await showDialog<bool>(
       context: context,
@@ -220,7 +107,9 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
             child: const Text('Batal'),
           ),
           ElevatedButton(
@@ -228,230 +117,339 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            onPressed: () => Navigator.pop(dialogContext, true),
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
             child: const Text('Hapus'),
           ),
         ],
       ),
     );
 
-    if (setuju != true || !mounted) return;
+    if (setuju != true) return;
 
-    setState(() {
-      produk.removeWhere((p) => p['id'] == item['id']);
-    });
+    final user = supabase.auth.currentUser;
 
-    _tampilkanPesan('Produk berhasil dihapus.');
+    if (user == null) {
+      _tampilkanPesan('Sesi login tidak ditemukan.');
+      return;
+    }
+
+    try {
+      await supabase
+          .from('products')
+          .delete()
+          .eq('id', item['id'])
+          .eq('seller_id', user.id);
+
+      if (!mounted) return;
+
+      _tampilkanPesan('Produk berhasil dihapus.');
+
+      await _ambilProduk();
+    } on PostgrestException catch (e) {
+      _tampilkanPesan('Gagal menghapus produk: ${e.message}');
+    } catch (e) {
+      _tampilkanPesan('Gagal menghapus produk: $e');
+    }
   }
 
-  Widget _placeholderFoto() {
-    return Container(
-      color: Colors.grey.shade100,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.image_outlined,
-        size: 32,
-        color: Colors.grey.shade400,
-      ),
-    );
+  // ==================================================
+  // FORMAT HARGA
+  // ==================================================
+  String _formatHarga(dynamic harga) {
+    final nilai = double.tryParse(harga.toString()) ?? 0;
+
+    return 'Rp ${nilai.toStringAsFixed(0)}';
   }
 
-  Widget _fotoProduk(String foto) {
-    if (foto.isEmpty) return _placeholderFoto();
+  // ==================================================
+  // FORMAT VARIAN
+  // ==================================================
+  String _formatVarian(dynamic dataVarian) {
+    if (dataVarian == null) return '';
 
-    return Image.network(
-      foto,
-      width: 82,
-      height: 82,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _placeholderFoto();
-      },
-    );
+    if (dataVarian is List) {
+      return dataVarian
+          .map((v) => v.toString())
+          .where((v) => v.trim().isNotEmpty)
+          .join(', ');
+    }
+
+    // Mendukung data lama yang tersimpan sebagai teks.
+    return dataVarian.toString().trim();
   }
 
+  // ==================================================
+  // PESAN
+  // ==================================================
+  void _tampilkanPesan(String pesan) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
+  }
+
+  // ==================================================
+  // TAMPILAN UTAMA
+  // ==================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: latar,
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Produk Saya',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+      body: RefreshIndicator(
+        onRefresh: _ambilProduk,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // JUDUL DAN TOMBOL TAMBAH
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Produk Saya',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                   ),
                 ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _bukaForm(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: hijau,
-                  foregroundColor: Colors.white,
+                ElevatedButton.icon(
+                  onPressed: () => _bukaForm(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hijau,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah'),
                 ),
-                icon: const Icon(Icons.add),
-                label: const Text('Tambah'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Kelola produk yang ditampilkan kepada pembeli.',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 20),
+              ],
+            ),
 
-          if (produk.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 56,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Belum Ada Produk',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tambahkan produk agar dapat '
-                    'ditampilkan di katalog pembeli.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            ...produk.map((item) {
-              final foto = item['foto_url']?.toString() ?? '';
-              final stok = item['stok'] ?? 0;
-              final varian = _formatVarian(item['varian']);
+            const SizedBox(height: 8),
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
+            const Text(
+              'Kelola produk yang ditampilkan kepada pembeli.',
+              style: TextStyle(color: Colors.grey),
+            ),
+
+            const SizedBox(height: 20),
+
+            // KONDISI LOADING
+            if (loading)
+              const Padding(
+                padding: EdgeInsets.all(40),
+                child: Center(child: CircularProgressIndicator(color: hijau)),
+              )
+            // KONDISI ERROR
+            else if (errorMessage != null)
+              Container(
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SizedBox(
-                        width: 82,
-                        height: 82,
-                        child: _fotoProduk(foto),
-                      ),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 44,
+                      color: Colors.red,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['nama_produk']?.toString() ?? '-',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item['kategori']?.toString() ?? '-',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _formatHarga(item['harga']),
-                            style: const TextStyle(
-                              color: hijau,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Stok: $stok',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          if (varian.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                'Varian: $varian',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          if ((item['deskripsi']?.toString() ?? '')
-                              .trim()
-                              .isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                item['deskripsi'].toString(),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      onSelected: (pilihan) {
-                        if (pilihan == 'edit') {
-                          _bukaForm(item: item);
-                        } else if (pilihan == 'hapus') {
-                          _hapusProduk(item);
-                        }
-                      },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Text('Edit Produk'),
-                        ),
-                        PopupMenuItem(
-                          value: 'hapus',
-                          child: Text('Hapus Produk'),
-                        ),
-                      ],
+                    const SizedBox(height: 12),
+                    Text(errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _ambilProduk,
+                      child: const Text('Coba Lagi'),
                     ),
                   ],
                 ),
-              );
-            }),
-        ],
+              )
+            // KONDISI PRODUK KOSONG
+            else if (produk.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 56,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Belum Ada Produk',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Tambahkan produk UMKM agar dapat '
+                      'ditampilkan di katalog pembeli.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ],
+                ),
+              )
+            // DAFTAR PRODUK
+            else
+              ...produk.map((item) {
+                final foto = item['foto_url']?.toString() ?? '';
+
+                final stok = item['stok'] ?? 0;
+
+                // TAMBAHAN VARIAN PRODUK
+                final teksVarian = _formatVarian(item['varian']);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // FOTO PRODUK
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          width: 82,
+                          height: 82,
+                          child: foto.isNotEmpty
+                              ? Image.network(
+                                  foto,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _placeholderFoto();
+                                  },
+                                )
+                              : _placeholderFoto(),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // INFORMASI PRODUK
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // NAMA PRODUK
+                            Text(
+                              item['nama_produk']?.toString() ?? '-',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // KATEGORI
+                            Text(
+                              item['kategori']?.toString() ?? '-',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            // HARGA
+                            Text(
+                              _formatHarga(item['harga']),
+                              style: const TextStyle(
+                                color: hijau,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // STOK
+                            Text(
+                              'Stok: $stok',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+
+                            // VARIAN
+                            if (teksVarian.isNotEmpty && teksVarian != '[]')
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Varian: $teksVarian',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+
+                            // DESKRIPSI
+                            if ((item['deskripsi']?.toString() ?? '')
+                                .trim()
+                                .isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  item['deskripsi'].toString(),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      // MENU EDIT DAN HAPUS
+                      PopupMenuButton<String>(
+                        onSelected: (pilihan) {
+                          if (pilihan == 'edit') {
+                            _bukaForm(item: item);
+                          } else if (pilihan == 'hapus') {
+                            _hapusProduk(item);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit Produk'),
+                          ),
+                          PopupMenuItem(
+                            value: 'hapus',
+                            child: Text('Hapus Produk'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+          ],
+        ),
       ),
+    );
+  }
+
+  // ==================================================
+  // FOTO PENGGANTI JIKA FOTO TIDAK TERSEDIA
+  // ==================================================
+  Widget _placeholderFoto() {
+    return Container(
+      color: Colors.grey.shade100,
+      alignment: Alignment.center,
+      child: Icon(Icons.image_outlined, size: 32, color: Colors.grey.shade400),
     );
   }
 }

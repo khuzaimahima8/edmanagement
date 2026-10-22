@@ -1,7 +1,9 @@
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:edmanagement/screens/penjual/seller_dashboard.dart';
 import 'register_screens.dart';
-import 'pembeli/marketplace_shell.dart';
+import 'pembeli/home_screens.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final Color primaryColor = const Color(0xFF006B42);
 
   // =====================================================
-  // LOGIN MOCK (FRONT-END ONLY)
+  // LOGIN DAN PENGECEKAN ROLE
   // =====================================================
 
   Future<void> _login() async {
@@ -55,35 +57,165 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      debugPrint('==============================');
-      debugPrint('LOGIN - MOCK FRONT-END MODE');
-      debugPrint('==============================');
+      final supabase = Supabase.instance.client;
 
-      // Simulasi jeda waktu loading untuk efek nyata
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // LOGIN MELALUI SUPABASE AUTH
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = response.user;
+
+      if (user == null) {
+        throw Exception('Data pengguna tidak ditemukan.');
+      }
 
       if (!mounted) return;
 
-      // Simulasi navigasi berbasis email (bisa diubah sesuai kebutuhan pengujian)
-      // Jika email mengandung "seller" atau "penjual", masuk ke Dashboard Penjual.
-      // Selain itu, masuk ke Home Screen Pembeli.
-      if (email.toLowerCase().contains('seller') ||
-          email.toLowerCase().contains('penjual')) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const SellerDashboardScreen(),
+      // AMBIL ROLE DAN STATUS PENJUAL
+      final profile = await supabase
+          .from('profiles')
+          .select('role, seller_status')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (!mounted) return;
+
+      // JIKA PROFIL TIDAK DITEMUKAN
+      if (profile == null) {
+        await supabase.auth.signOut();
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Profil akun tidak ditemukan. Silakan hubungi admin.',
+            ),
+            backgroundColor: Colors.red,
           ),
         );
-      } else {
+        return;
+      }
+
+      final role =
+          profile['role']?.toString().trim().toLowerCase();
+
+      final sellerStatus =
+          profile['seller_status']?.toString().trim().toLowerCase();
+
+      // =====================================================
+      // PEMBELI
+      // LANGSUNG MASUK HOME SCREEN
+      // =====================================================
+
+      if (role == 'buyer' || role == 'pembeli') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const MarketplaceShell(),
+            builder: (context) => const HomeScreen(),
           ),
         );
       }
-    } catch (e) {
+
+      // =====================================================
+      // PENJUAL
+      // HARUS MENDAPAT PERSETUJUAN ADMIN
+      // =====================================================
+
+      else if (role == 'seller' || role == 'penjual') {
+        if (sellerStatus == 'approved') {
+          // PENJUAL SUDAH DISETUJUI
+          // LANGSUNG MASUK SELLER DASHBOARD
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const SellerDashboardScreen(),
+            ),
+          );
+        } else {
+          // PENJUAL BELUM DISETUJUI ATAU DITOLAK
+
+          final pesan = sellerStatus == 'rejected'
+              ? 'Pendaftaran penjual ditolak. Silakan hubungi admin.'
+              : 'Pendaftaran penjual masih menunggu persetujuan admin.';
+
+          await supabase.auth.signOut();
+
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(pesan),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+
+      // =====================================================
+      // ADMIN
+      // DASHBOARD ADMIN BELUM DIHUBUNGKAN
+      // =====================================================
+
+      else if (role == 'admin') {
+        await supabase.auth.signOut();
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Role admin terdeteksi, tetapi dashboard admin '
+              'belum dihubungkan.',
+            ),
+          ),
+        );
+      }
+
+      // =====================================================
+      // ROLE TIDAK VALID
+      // =====================================================
+
+      else {
+        await supabase.auth.signOut();
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Role akun belum valid. Silakan hubungi admin.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
+    // =====================================================
+    // ERROR SUPABASE AUTH
+    // =====================================================
+
+    on AuthException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login gagal: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+    // =====================================================
+    // ERROR LAIN
+    // =====================================================
+
+    catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +224,13 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.red,
         ),
       );
-    } finally {
+    }
+
+    // =====================================================
+    // SELESAI LOADING
+    // =====================================================
+
+    finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -113,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // =====================================================
-  // TAMPILAN LOGIN
+  // TAMPILAN LOGIN - DIPERTAHANKAN DARI KODE AWAL
   // =====================================================
 
   @override
