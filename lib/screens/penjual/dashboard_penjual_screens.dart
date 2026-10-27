@@ -15,7 +15,8 @@ class DashboardPenjualScreen extends StatefulWidget {
   });
 
   @override
-  State<DashboardPenjualScreen> createState() => _DashboardPenjualScreenState();
+  State<DashboardPenjualScreen> createState() =>
+      _DashboardPenjualScreenState();
 }
 
 class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
@@ -30,13 +31,17 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
     _ringkasanFuture = _ambilRingkasanProduk();
   }
 
-  // Mengambil data produk milik penjual yang sedang login.
+  // ==========================================
+  // MENGAMBIL DATA PRODUK DARI SUPABASE
+  // ==========================================
   Future<Map<String, int>> _ambilRingkasanProduk() async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
 
     if (user == null) {
-      throw Exception('Sesi login tidak ditemukan. Silakan login kembali.');
+      throw Exception(
+        'Sesi login tidak ditemukan. Silakan login kembali.',
+      );
     }
 
     final response = await supabase
@@ -44,9 +49,8 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
         .select('id, stok')
         .eq('seller_id', user.id);
 
-    final List<Map<String, dynamic>> produk = List<Map<String, dynamic>>.from(
-      response,
-    );
+    final List<Map<String, dynamic>> produk =
+        List<Map<String, dynamic>>.from(response);
 
     int totalStok = 0;
 
@@ -54,10 +58,15 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
       totalStok += (item['stok'] as num?)?.toInt() ?? 0;
     }
 
-    return {'totalProduk': produk.length, 'totalStok': totalStok};
+    return {
+      'totalProduk': produk.length,
+      'totalStok': totalStok,
+    };
   }
 
-  // Memuat ulang data dashboard.
+  // ==========================================
+  // MUAT ULANG DATA
+  // ==========================================
   Future<void> _muatUlang() async {
     setState(() {
       _ringkasanFuture = _ambilRingkasanProduk();
@@ -68,6 +77,18 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
     } catch (_) {
       // Error ditampilkan oleh FutureBuilder.
     }
+  }
+
+  // ==========================================
+  // MEMBUKA LAPORAN PENJUALAN
+  // ==========================================
+  void _bukaLaporanPenjualan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LaporanPenjualanScreen(),
+      ),
+    );
   }
 
   @override
@@ -111,7 +132,10 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                   Text(
                     'Kelola produk dan pesanan UMKM kamu '
                     'dalam satu tempat.',
-                    style: TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -124,16 +148,19 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             const SizedBox(height: 12),
 
             // ==========================================
-            // RINGKASAN DATA SUPABASE
+            // RINGKASAN PRODUK DAN MENU YANG BISA DIKLIK
             // ==========================================
             FutureBuilder<Map<String, int>>(
               future: _ringkasanFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 32),
                     child: Center(
-                      child: CircularProgressIndicator(color: hijau),
+                      child: CircularProgressIndicator(
+                        color: hijau,
+                      ),
                     ),
                   );
                 }
@@ -144,7 +171,9 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE7ECE8)),
+                      border: Border.all(
+                        color: const Color(0xFFE7ECE8),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -160,10 +189,13 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                         ),
                         const SizedBox(height: 6),
                         const Text(
-                          'Periksa koneksi, sesi login, dan '
-                          'izin akses tabel products di Supabase.',
+                          'Periksa koneksi, sesi login, dan izin '
+                          'akses tabel products di Supabase.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         TextButton.icon(
@@ -176,11 +208,15 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                   );
                 }
 
-                final data =
-                    snapshot.data ?? {'totalProduk': 0, 'totalStok': 0};
+                final data = snapshot.data ??
+                    {
+                      'totalProduk': 0,
+                      'totalStok': 0,
+                    };
 
                 return Column(
                   children: [
+                    // BARIS PERTAMA
                     Row(
                       children: [
                         Expanded(
@@ -203,21 +239,28 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
 
                     const SizedBox(height: 12),
 
+                    // BARIS KEDUA
                     Row(
                       children: [
+                        // PESANAN BARU
                         Expanded(
                           child: _kartuRingkasan(
                             ikon: Icons.shopping_bag_outlined,
                             judul: 'Pesanan Baru',
-                            nilai: '—',
+                            nilai: '5',
+                            aksi: widget.onPesananMasuk,
                           ),
                         ),
+
                         const SizedBox(width: 12),
+
+                        // PENJUALAN
                         Expanded(
                           child: _kartuRingkasan(
                             ikon: Icons.payments_outlined,
                             judul: 'Penjualan',
-                            nilai: '—',
+                            nilai: 'Rp150.000',
+                            aksi: _bukaLaporanPenjualan,
                           ),
                         ),
                       ],
@@ -260,14 +303,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
               ikon: Icons.bar_chart_outlined,
               judul: 'Laporan Penjualan',
               deskripsi: 'Lihat rekap transaksi dan produk terjual',
-              aksi: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const LaporanPenjualanScreen(),
-                  ),
-                );
-              },
+              aksi: _bukaLaporanPenjualan,
             ),
 
             // ==========================================
@@ -280,7 +316,9 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
               aksi: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Pilih menu Toko Saya di navigasi bawah.'),
+                    content: Text(
+                      'Pilih menu Toko Saya di navigasi bawah.',
+                    ),
                   ),
                 );
               },
@@ -297,7 +335,8 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const PengaturanAkunScreen(),
+                    builder: (context) =>
+                        const PengaturanAkunScreen(),
                   ),
                 );
               },
@@ -314,43 +353,95 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
   Widget _judulBagian(String judul) {
     return Text(
       judul,
-      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+      style: const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 
   // ==========================================
   // KARTU RINGKASAN
+  // BISA DIKLIK JIKA AKSI DIISI
   // ==========================================
   Widget _kartuRingkasan({
     required IconData ikon,
     required String judul,
     required String nilai,
+    VoidCallback? aksi,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Card(
+      color: Colors.white,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE7ECE8)),
+        side: const BorderSide(
+          color: Color(0xFFE7ECE8),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(ikon, color: hijau, size: 26),
-          const SizedBox(height: 12),
-          Text(
-            nilai,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      child: InkWell(
+        onTap: aksi,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    ikon,
+                    color: hijau,
+                    size: 26,
+                  ),
+                  const Spacer(),
+                  if (aksi != null)
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Mencegah teks nilai terlalu panjang
+              // sehingga melampaui lebar kartu.
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    nilai,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                judul,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(judul, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        ],
+        ),
       ),
     );
   }
 
   // ==========================================
-  // KARTU MENU
+  // KARTU MENU PENGELOLAAN
   // ==========================================
   Widget _kartuMenu({
     required IconData ikon,
@@ -364,20 +455,34 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE7ECE8)),
+        side: const BorderSide(
+          color: Color(0xFFE7ECE8),
+        ),
       ),
       child: ListTile(
         onTap: aksi,
         leading: CircleAvatar(
           backgroundColor: const Color(0xFFE0F2E9),
-          child: Icon(ikon, color: hijau),
+          child: Icon(
+            ikon,
+            color: hijau,
+          ),
         ),
         title: Text(
           judul,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        subtitle: Text(deskripsi, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        subtitle: Text(
+          deskripsi,
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: Colors.grey,
+        ),
       ),
     );
   }
