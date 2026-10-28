@@ -19,20 +19,125 @@ class DashboardPenjualScreen extends StatefulWidget {
       _DashboardPenjualScreenState();
 }
 
-class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
+class _DashboardPenjualScreenState
+    extends State<DashboardPenjualScreen> {
   static const Color hijau = Color(0xFF006B42);
   static const Color latar = Color(0xFFF5F7F6);
 
   late Future<Map<String, int>> _ringkasanFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    _ringkasanFuture = _ambilRingkasanProduk();
+  bool _tokoBuka = true;
+  bool _sedangMenyimpanStatus = false;
+
+  // ==========================================
+  // MENGAMBIL STATUS TOKO
+  // ==========================================
+  Future<void> _ambilStatusToko() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final data = await supabase
+          .from('seller_store_status')
+          .select('is_open')
+          .eq('seller_id', user.id)
+          .maybeSingle();
+
+      if (!mounted) return;
+
+      setState(() {
+        _tokoBuka = data?['is_open'] as bool? ?? true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil status toko: $e'),
+        ),
+      );
+    }
   }
 
   // ==========================================
-  // MENGAMBIL DATA PRODUK DARI SUPABASE
+  // MENGUBAH STATUS TOKO
+  // ==========================================
+  Future<void> _ubahStatusToko(bool nilai) async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login kembali.'),
+        ),
+      );
+      return;
+    }
+
+    final statusSebelumnya = _tokoBuka;
+
+    setState(() {
+      _tokoBuka = nilai;
+      _sedangMenyimpanStatus = true;
+    });
+
+    try {
+      await Supabase.instance.client
+          .from('seller_store_status')
+          .upsert({
+        'seller_id': user.id,
+        'is_open': nilai,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'seller_id');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            nilai
+                ? 'Toko berhasil dibuka.'
+                : 'Toko berhasil ditutup.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _tokoBuka = statusSebelumnya;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Status toko gagal disimpan: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _sedangMenyimpanStatus = false;
+        });
+      }
+    }
+  }
+
+  // ==========================================
+  // INIT STATE
+  // ==========================================
+  @override
+  void initState() {
+    super.initState();
+
+    _ringkasanFuture = _ambilRingkasanProduk();
+
+    _ambilStatusToko();
+  }
+
+  // ==========================================
+  // MENGAMBIL DATA PRODUK DAN STOK
   // ==========================================
   Future<Map<String, int>> _ambilRingkasanProduk() async {
     final supabase = Supabase.instance.client;
@@ -65,7 +170,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
   }
 
   // ==========================================
-  // MUAT ULANG DATA
+  // MEMUAT ULANG DATA DASHBOARD
   // ==========================================
   Future<void> _muatUlang() async {
     setState(() {
@@ -86,11 +191,14 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const LaporanPenjualanScreen(),
+        builder: (_) => const LaporanPenjualanScreen(),
       ),
     );
   }
 
+  // ==========================================
+  // TAMPILAN DASHBOARD
+  // ==========================================
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -141,6 +249,83 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
               ),
             ),
 
+            // ==========================================
+            // STATUS BUKA / TUTUP TOKO
+            // ==========================================
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _tokoBuka
+                      ? const Color(0xFFB7DEC9)
+                      : const Color(0xFFF0C2C2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _tokoBuka
+                          ? const Color(0xFFE0F2E9)
+                          : const Color(0xFFFFE8E8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _tokoBuka
+                          ? Icons.storefront
+                          : Icons.store_outlined,
+                      color: _tokoBuka ? hijau : Colors.red,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Status Toko',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _tokoBuka
+                              ? 'Toko sedang buka'
+                              : 'Toko sedang tutup',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _tokoBuka ? hijau : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_sedangMenyimpanStatus)
+                    const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: hijau,
+                      ),
+                    )
+                  else
+                    Switch(
+                      value: _tokoBuka,
+                      activeThumbColor: hijau,
+                      onChanged: _ubahStatusToko,
+                    ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 24),
 
             _judulBagian('Ringkasan Toko'),
@@ -148,7 +333,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             const SizedBox(height: 12),
 
             // ==========================================
-            // RINGKASAN PRODUK DAN MENU YANG BISA DIKLIK
+            // RINGKASAN PRODUK, STOK, PESANAN, PENJUALAN
             // ==========================================
             FutureBuilder<Map<String, int>>(
               future: _ringkasanFuture,
@@ -189,8 +374,8 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                         ),
                         const SizedBox(height: 6),
                         const Text(
-                          'Periksa koneksi, sesi login, dan izin '
-                          'akses tabel products di Supabase.',
+                          'Periksa koneksi, sesi login, dan '
+                          'izin akses tabel products di Supabase.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -224,6 +409,9 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                             ikon: Icons.inventory_2_outlined,
                             judul: 'Total Produk',
                             nilai: '${data['totalProduk']}',
+
+                            // KLIK PRODUK -> HALAMAN KELOLA PRODUK
+                            aksi: widget.onKelolaProduk,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -232,6 +420,9 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                             ikon: Icons.inventory_outlined,
                             judul: 'Total Stok',
                             nilai: '${data['totalStok']}',
+
+                            // KLIK STOK -> HALAMAN KELOLA PRODUK
+                            aksi: widget.onKelolaProduk,
                           ),
                         ),
                       ],
@@ -242,24 +433,24 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                     // BARIS KEDUA
                     Row(
                       children: [
-                        // PESANAN BARU
                         Expanded(
                           child: _kartuRingkasan(
                             ikon: Icons.shopping_bag_outlined,
                             judul: 'Pesanan Baru',
-                            nilai: '5',
+                            nilai: '—',
+
+                            // KLIK PESANAN -> HALAMAN PESANAN MASUK
                             aksi: widget.onPesananMasuk,
                           ),
                         ),
-
                         const SizedBox(width: 12),
-
-                        // PENJUALAN
                         Expanded(
                           child: _kartuRingkasan(
                             ikon: Icons.payments_outlined,
                             judul: 'Penjualan',
-                            nilai: 'Rp150.000',
+                            nilai: '—',
+
+                            // KLIK PENJUALAN -> LAPORAN PENJUALAN
                             aksi: _bukaLaporanPenjualan,
                           ),
                         ),
@@ -277,7 +468,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             const SizedBox(height: 12),
 
             // ==========================================
-            // KELOLA PRODUK
+            // MENU KELOLA PRODUK
             // ==========================================
             _kartuMenu(
               ikon: Icons.add_box_outlined,
@@ -287,7 +478,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             ),
 
             // ==========================================
-            // PESANAN MASUK
+            // MENU PESANAN MASUK
             // ==========================================
             _kartuMenu(
               ikon: Icons.receipt_long_outlined,
@@ -297,7 +488,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
             ),
 
             // ==========================================
-            // LAPORAN PENJUALAN
+            // MENU LAPORAN PENJUALAN
             // ==========================================
             _kartuMenu(
               ikon: Icons.bar_chart_outlined,
@@ -306,26 +497,9 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
               aksi: _bukaLaporanPenjualan,
             ),
 
+            
             // ==========================================
-            // PROFIL TOKO
-            // ==========================================
-            _kartuMenu(
-              ikon: Icons.store_outlined,
-              judul: 'Profil Toko',
-              deskripsi: 'Atur informasi usaha kamu',
-              aksi: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Pilih menu Toko Saya di navigasi bawah.',
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            // ==========================================
-            // PENGATURAN AKUN
+            // MENU PENGATURAN AKUN
             // ==========================================
             _kartuMenu(
               ikon: Icons.settings_outlined,
@@ -335,7 +509,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
+                    builder: (_) =>
                         const PengaturanAkunScreen(),
                   ),
                 );
@@ -361,26 +535,25 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
   }
 
   // ==========================================
-  // KARTU RINGKASAN
-  // BISA DIKLIK JIKA AKSI DIISI
+  // KARTU RINGKASAN YANG BISA DIKLIK
   // ==========================================
   Widget _kartuRingkasan({
     required IconData ikon,
     required String judul,
     required String nilai,
-    VoidCallback? aksi,
+    required VoidCallback aksi,
   }) {
     return Card(
       color: Colors.white,
       elevation: 0,
       margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: const BorderSide(
           color: Color(0xFFE7ECE8),
         ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: aksi,
         child: Padding(
@@ -388,48 +561,33 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    ikon,
-                    color: hijau,
-                    size: 26,
-                  ),
-                  const Spacer(),
-                  if (aksi != null)
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 14,
-                      color: Colors.grey,
-                    ),
-                ],
+              Icon(
+                ikon,
+                color: hijau,
+                size: 26,
               ),
               const SizedBox(height: 12),
-
-              // Mencegah teks nilai terlalu panjang
-              // sehingga melampaui lebar kartu.
-              SizedBox(
-                width: double.infinity,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    nilai,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
+              Text(
+                nilai,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-
               const SizedBox(height: 4),
-
               Text(
                 judul,
                 style: const TextStyle(
                   fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 12,
                   color: Colors.grey,
                 ),
               ),
@@ -441,7 +599,7 @@ class _DashboardPenjualScreenState extends State<DashboardPenjualScreen> {
   }
 
   // ==========================================
-  // KARTU MENU PENGELOLAAN
+  // KARTU MENU
   // ==========================================
   Widget _kartuMenu({
     required IconData ikon,
