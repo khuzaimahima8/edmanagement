@@ -1,57 +1,181 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
 
 import 'informasi_toko_screens.dart';
 import 'laporan_penjualan_screens.dart';
 import 'pengaturan_akun_screens.dart';
 
-class TokoSayaScreen extends StatelessWidget {
+const Color warnaHijauToko = Color(0xFF006B42);
+const Color warnaHijauMudaToko = Color(0xFFE0F2E9);
+const Color warnaLatarToko = Color(0xFFF5F7F6);
+
+// ======================================================
+// HALAMAN TOKO SAYA
+// ======================================================
+
+class TokoSayaScreen extends StatefulWidget {
   const TokoSayaScreen({super.key});
 
-  static const Color hijau = Color(0xFF006B42);
-  static const Color hijauMuda = Color(0xFFE0F2E9);
+  @override
+  State<TokoSayaScreen> createState() => _TokoSayaScreenState();
+}
+
+class _TokoSayaScreenState extends State<TokoSayaScreen> {
+  Uint8List? fotoToko;
+    final ImagePicker _imagePicker = ImagePicker();
+  String namaToko = 'Toko UMKM Saya';
+  String deskripsiToko = 'Kelola informasi dan aktivitas tokomu.';
+
+  Future<void> _pilihFotoToko() async {
+    try {
+      final XFile? gambar = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+
+      if (gambar == null) return;
+
+      final Uint8List bytes = await gambar.readAsBytes();
+
+      if (!mounted) return;
+
+      setState(() {
+        fotoToko = bytes;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memilih foto: $e'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _bukaEditProfil() async {
+    final hasil = await Navigator.push<Map<String, String>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfilTokoScreen(
+          namaAwal: namaToko,
+          deskripsiAwal: deskripsiToko,
+        ),
+      ),
+    );
+
+    if (!mounted || hasil == null) return;
+
+    setState(() {
+      namaToko = hasil['nama'] ?? namaToko;
+      deskripsiToko = hasil['deskripsi'] ?? deskripsiToko;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // =========================
+        // ==================================================
         // HEADER TOKO
-        // =========================
+        // ==================================================
+
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE7ECE8)),
+            border: Border.all(
+              color: const Color(0xFFE7ECE8),
+            ),
           ),
-          child: const Column(
+          child: Column(
             children: [
-              CircleAvatar(
-                radius: 38,
-                backgroundColor: hijauMuda,
-                child: Icon(
-                  Icons.storefront,
-                  size: 40,
-                  color: hijau,
+              // LOGO TOKO DENGAN IKON EDIT
+              GestureDetector(
+                onTap: _pilihFotoToko,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: warnaHijauMudaToko,
+                    backgroundImage: fotoToko != null
+                        ? MemoryImage(fotoToko!)
+                        : null,
+                    child: fotoToko == null
+                        ? const Icon(
+                            Icons.storefront,
+                            size: 42,
+                            color: warnaHijauToko,
+                          )
+                        : null,
+                  ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: Container(
+                        width: 29,
+                        height: 29,
+                        decoration: BoxDecoration(
+                          color: warnaHijauToko,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 12),
+
+              const SizedBox(height: 12),
+
               Text(
-                'Toko UMKM Saya',
-                style: TextStyle(
+                namaToko,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: hijau,
+                  color: warnaHijauToko,
                 ),
               ),
-              SizedBox(height: 6),
+
+              const SizedBox(height: 6),
+
               Text(
-                'Kelola informasi dan aktivitas tokomu.',
+                deskripsiToko,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              OutlinedButton.icon(
+                onPressed: _bukaEditProfil,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Edit Profil Toko'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: warnaHijauToko,
+                  side: const BorderSide(
+                    color: warnaHijauToko,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ],
@@ -60,9 +184,10 @@ class TokoSayaScreen extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        // =========================
-        // JUDUL MENU
-        // =========================
+        // ==================================================
+        // PENGELOLAAN TOKO
+        // ==================================================
+
         const Padding(
           padding: EdgeInsets.only(bottom: 12),
           child: Text(
@@ -74,11 +199,7 @@ class TokoSayaScreen extends StatelessWidget {
           ),
         ),
 
-        // =========================
-        // INFORMASI TOKO
-        // =========================
         _kartuMenu(
-          context: context,
           ikon: Icons.store_outlined,
           judul: 'Informasi Toko',
           deskripsi: 'Nama, deskripsi, kategori, dan alamat toko',
@@ -92,11 +213,7 @@ class TokoSayaScreen extends StatelessWidget {
           },
         ),
 
-        // =========================
-        // NOMOR WHATSAPP
-        // =========================
         _kartuMenu(
-          context: context,
           ikon: Icons.chat_outlined,
           judul: 'Nomor WhatsApp',
           deskripsi: 'Atur kontak yang dapat dihubungi pembeli',
@@ -112,9 +229,10 @@ class TokoSayaScreen extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        // =========================
-        // JUDUL MENU LAINNYA
-        // =========================
+        // ==================================================
+        // AKTIVITAS DAN PENGATURAN
+        // ==================================================
+
         const Padding(
           padding: EdgeInsets.only(bottom: 12),
           child: Text(
@@ -126,11 +244,7 @@ class TokoSayaScreen extends StatelessWidget {
           ),
         ),
 
-        // =========================
-        // LAPORAN PENJUALAN
-        // =========================
         _kartuMenu(
-          context: context,
           ikon: Icons.bar_chart_outlined,
           judul: 'Laporan Penjualan',
           deskripsi: 'Lihat ringkasan hasil penjualan',
@@ -144,11 +258,7 @@ class TokoSayaScreen extends StatelessWidget {
           },
         ),
 
-        // =========================
-        // PENGATURAN AKUN
-        // =========================
         _kartuMenu(
-          context: context,
           ikon: Icons.settings_outlined,
           judul: 'Pengaturan Akun',
           deskripsi: 'Atur informasi dan keamanan akun',
@@ -162,11 +272,7 @@ class TokoSayaScreen extends StatelessWidget {
           },
         ),
 
-        // =========================
-        // KELUAR
-        // =========================
         _kartuMenu(
-          context: context,
           ikon: Icons.logout,
           judul: 'Keluar',
           deskripsi: 'Keluar dari akun penjual',
@@ -190,11 +296,11 @@ class TokoSayaScreen extends StatelessWidget {
     );
   }
 
-  // =========================
+  // ======================================================
   // WIDGET KARTU MENU
-  // =========================
-  static Widget _kartuMenu({
-    required BuildContext context,
+  // ======================================================
+
+  Widget _kartuMenu({
     required IconData ikon,
     required String judul,
     required String deskripsi,
@@ -217,10 +323,10 @@ class TokoSayaScreen extends StatelessWidget {
           vertical: 5,
         ),
         leading: CircleAvatar(
-          backgroundColor: hijauMuda,
+          backgroundColor: warnaHijauMudaToko,
           child: Icon(
             ikon,
-            color: hijau,
+            color: warnaHijauToko,
           ),
         ),
         title: Text(
@@ -242,10 +348,11 @@ class TokoSayaScreen extends StatelessWidget {
     );
   }
 
-  // =========================
+  // ======================================================
   // KONFIRMASI KELUAR
-  // =========================
-  static void _konfirmasiKeluar(BuildContext context) {
+  // ======================================================
+
+  void _konfirmasiKeluar(BuildContext context) {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -269,7 +376,7 @@ class TokoSayaScreen extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: hijau,
+                backgroundColor: warnaHijauToko,
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
@@ -293,6 +400,218 @@ class TokoSayaScreen extends StatelessWidget {
 }
 
 // ======================================================
+// HALAMAN EDIT PROFIL TOKO
+// ======================================================
+
+class EditProfilTokoScreen extends StatefulWidget {
+  final String namaAwal;
+  final String deskripsiAwal;
+
+  const EditProfilTokoScreen({
+    super.key,
+    required this.namaAwal,
+    required this.deskripsiAwal,
+  });
+
+  @override
+  State<EditProfilTokoScreen> createState() =>
+      _EditProfilTokoScreenState();
+}
+
+class _EditProfilTokoScreenState extends State<EditProfilTokoScreen> {
+  late final TextEditingController _namaController;
+  late final TextEditingController _deskripsiController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _namaController = TextEditingController(
+      text: widget.namaAwal,
+    );
+
+    _deskripsiController = TextEditingController(
+      text: widget.deskripsiAwal,
+    );
+  }
+
+  @override
+  void dispose() {
+    _namaController.dispose();
+    _deskripsiController.dispose();
+    super.dispose();
+  }
+
+  void _simpanProfil() {
+    final nama = _namaController.text.trim();
+    final deskripsi = _deskripsiController.text.trim();
+
+    if (nama.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nama toko tidak boleh kosong.'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      <String, String>{
+        'nama': nama,
+        'deskripsi': deskripsi,
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: warnaLatarToko,
+      appBar: AppBar(
+        title: const Text('Edit Profil Toko'),
+        backgroundColor: warnaHijauToko,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          // LOGO TOKO
+          Center(
+            child: Stack(
+              children: [
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: warnaHijauMudaToko,
+                  child: Icon(
+                    Icons.storefront,
+                    size: 50,
+                    color: warnaHijauToko,
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: warnaHijauToko,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 17,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          const Text(
+            'Profil Toko',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          const Text(
+            'Nama Toko',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          TextField(
+            controller: _namaController,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              hintText: 'Masukkan nama toko',
+              prefixIcon: const Icon(
+                Icons.store_outlined,
+                color: warnaHijauToko,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: warnaHijauToko,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          const Text(
+            'Deskripsi Toko',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          TextField(
+            controller: _deskripsiController,
+            maxLines: 4,
+            maxLength: 200,
+            decoration: InputDecoration(
+              hintText: 'Ceritakan tentang tokomu',
+              alignLabelWithHint: true,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: warnaHijauToko,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          SizedBox(
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: _simpanProfil,
+              icon: const Icon(Icons.save_outlined),
+              label: const Text('Simpan Perubahan'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: warnaHijauToko,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================================================
 // HALAMAN NOMOR WHATSAPP
 // ======================================================
 
@@ -306,8 +625,6 @@ class NomorWhatsAppScreen extends StatefulWidget {
 
 class _NomorWhatsAppScreenState
     extends State<NomorWhatsAppScreen> {
-  static const Color hijau = Color(0xFF006B42);
-
   final TextEditingController _nomorController =
       TextEditingController();
 
@@ -338,8 +655,6 @@ class _NomorWhatsAppScreenState
       return;
     }
 
-    // Penyimpanan saat ini masih sementara.
-    // Hubungkan ke penyimpanan lokal atau database jika diperlukan.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
@@ -355,7 +670,7 @@ class _NomorWhatsAppScreenState
       backgroundColor: const Color(0xFFF7F9F7),
       appBar: AppBar(
         title: const Text('Nomor WhatsApp'),
-        backgroundColor: hijau,
+        backgroundColor: warnaHijauToko,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -374,11 +689,11 @@ class _NomorWhatsAppScreenState
                 children: [
                   CircleAvatar(
                     radius: 35,
-                    backgroundColor: Color(0xFFE0F2E9),
+                    backgroundColor: warnaHijauMudaToko,
                     child: Icon(
                       Icons.chat,
                       size: 36,
-                      color: hijau,
+                      color: warnaHijauToko,
                     ),
                   ),
                   SizedBox(height: 12),
@@ -422,7 +737,7 @@ class _NomorWhatsAppScreenState
                 hintText: 'Contoh: 081234567890',
                 prefixIcon: const Icon(
                   Icons.phone_android,
-                  color: hijau,
+                  color: warnaHijauToko,
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -438,7 +753,7 @@ class _NomorWhatsAppScreenState
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
-                    color: hijau,
+                    color: warnaHijauToko,
                     width: 1.5,
                   ),
                 ),
@@ -455,7 +770,7 @@ class _NomorWhatsAppScreenState
                 icon: const Icon(Icons.save_outlined),
                 label: const Text('Simpan Nomor'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: hijau,
+                  backgroundColor: warnaHijauToko,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
