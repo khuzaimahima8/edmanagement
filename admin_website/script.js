@@ -1,131 +1,230 @@
-
 /* ==================================================
-   KONEKSI SUPABASE ED MANAGEMENT
+   ADMIN ED MANAGEMENT - MODE DEMO
+   Tidak menggunakan koneksi Supabase
 ================================================== */
 
-const SUPABASE_URL =
-  "https://cqzzrxeukcxkstdxfeiy.supabase.co";
+const DEMO_EMAIL = "admin@edmanagement.test";
+const DEMO_PASSWORD = "admin123";
 
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_forJiulthVcRmNGHfQUO1g_1DkiL3pq";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
-console.log("Client Supabase berhasil dibuat");
-
-/* ==================================================
-   ELEMENT HTML
-================================================== */
-
+// Elemen HTML
+const loginPage = document.getElementById("loginPage");
+const adminApp = document.getElementById("adminApp");
+const loginForm = document.getElementById("loginForm");
+const loginMessage = document.getElementById("loginMessage");
+const loginBtn = document.getElementById("loginBtn");
 const pageContent = document.getElementById("pageContent");
 const pageTitle = document.getElementById("pageTitle");
 const pageDescription = document.getElementById("pageDescription");
 const breadcrumbTitle = document.getElementById("breadcrumbTitle");
 const approvalBadge = document.getElementById("approvalBadge");
 const toast = document.getElementById("toast");
-
-const loginPage = document.getElementById("loginPage");
-const adminApp = document.getElementById("adminApp");
-const loginForm = document.getElementById("loginForm");
-const loginMessage = document.getElementById("loginMessage");
-const loginButton = document.getElementById("loginBtn");
+const adminName = document.getElementById("adminName");
+const adminEmailLabel = document.getElementById("adminEmailLabel");
+const sidebar = document.getElementById("sidebar");
+const mobileMenu = document.getElementById("mobileMenu");
+const logoutBtn = document.getElementById("logoutBtn");
+const currentDate = document.getElementById("currentDate");
 
 let currentPage = "dashboard";
-let profiles = [];
-let sellers = [];
-let buyers = [];
 
-/* ==================================================
-   INFORMASI HALAMAN
-================================================== */
+// ==================================================
+// DATA CONTOH
+// ==================================================
 
-const pageInfo = {
-  dashboard: [
-    "Dashboard",
-    "Pantau aktivitas marketplace ED Management."
-  ],
-  approvals: [
-    "Persetujuan Penjual",
-    "Periksa pendaftaran sebelum penjual dapat berjualan."
-  ],
-  buyers: [
-    "Data Pembeli",
-    "Daftar akun pembeli yang terdaftar."
-  ],
-  sellers: [
-    "Data Penjual",
-    "Daftar penjual beserta status pendaftarannya."
-  ],
-  products: [
-    "Data Produk",
-    "Pantau produk yang tersedia di marketplace."
-  ],
-  orders: [
-    "Data Pesanan",
-    "Pantau pesanan dari pembeli."
-  ],
-  reports: [
-    "Laporan Penjualan",
-    "Ringkasan transaksi berdasarkan data yang tersedia."
-  ]
-};
-
-/* ==================================================
-   DATA CONTOH
-   PRODUK DAN PESANAN BELUM TERHUBUNG KE DATABASE
-================================================== */
-
-const products = [
+let buyers = [
   {
+    id: 1,
+    name: "Rina Amelia",
+    email: "rina@gmail.com",
+    phone: "081234567801",
+    status: "Aktif",
+    date: "20 Oktober 2026"
+  },
+  {
+    id: 2,
+    name: "Doni Pratama",
+    email: "doni@gmail.com",
+    phone: "081234567802",
+    status: "Aktif",
+    date: "21 Oktober 2026"
+  },
+  {
+    id: 3,
+    name: "Nadia Putri",
+    email: "nadia@gmail.com",
+    phone: "081234567803",
+    status: "Aktif",
+    date: "22 Oktober 2026"
+  }
+];
+
+let sellers = [
+  {
+    id: 1,
+    name: "Ayu Craft",
+    email: "ayu@gmail.com",
+    phone: "081234567811",
+    store: "Ayu Craft",
+    category: "Kerajinan",
+    status: "Menunggu",
+    date: "23 Oktober 2026"
+  },
+  {
+    id: 2,
+    name: "Rahma",
+    email: "rahma@gmail.com",
+    phone: "081234567812",
+    store: "Keripik Rahma",
+    category: "Makanan",
+    status: "Disetujui",
+    date: "22 Oktober 2026"
+  },
+  {
+    id: 3,
+    name: "Budi Santoso",
+    email: "budi@gmail.com",
+    phone: "081234567813",
+    store: "Kopi Budi",
+    category: "Minuman",
+    status: "Menunggu",
+    date: "24 Oktober 2026"
+  },
+  {
+    id: 4,
+    name: "Siti Aminah",
+    email: "siti@gmail.com",
+    phone: "081234567814",
+    store: "Buket Siti",
+    category: "Kerajinan",
+    status: "Ditolak",
+    date: "21 Oktober 2026"
+  }
+];
+
+let products = [
+  {
+    id: 1,
     name: "Tas Rajut",
     seller: "Ayu Craft",
+    category: "Kerajinan",
     price: 17000,
+    stock: 20,
     status: "Aktif"
   },
   {
+    id: 2,
     name: "Keripik Pisang",
     seller: "Keripik Rahma",
+    category: "Makanan",
     price: 10000,
+    stock: 50,
     status: "Aktif"
   },
   {
+    id: 3,
     name: "Kopi Cendana",
     seller: "Kopi Budi",
+    category: "Minuman",
     price: 25000,
+    stock: 30,
     status: "Aktif"
   }
 ];
 
-const orders = [
+let orders = [
   {
     id: "ORD-001",
     buyer: "Rina Amelia",
     product: "Tas Rajut",
     total: 17000,
-    status: "Diproses"
+    status: "Diproses",
+    date: "25 Oktober 2026"
   },
   {
     id: "ORD-002",
     buyer: "Doni Pratama",
     product: "Kopi Cendana",
     total: 50000,
-    status: "Selesai"
+    status: "Selesai",
+    date: "24 Oktober 2026"
   },
   {
     id: "ORD-003",
     buyer: "Nadia Putri",
     product: "Keripik Pisang",
     total: 20000,
-    status: "Menunggu"
+    status: "Menunggu",
+    date: "25 Oktober 2026"
   }
 ];
 
-/* ==================================================
-   UTILITAS
-================================================== */
+// Riwayat aktivitas dashboard
+let activities = [
+  {
+    title: "Penjual Rahma disetujui",
+    detail: "Keripik Rahma • Persetujuan penjual",
+    time: "Aktivitas contoh"
+  },
+  {
+    title: "Pesanan ORD-003 diterima",
+    detail: "Nadia Putri • Keripik Pisang",
+    time: "Aktivitas contoh"
+  },
+  {
+    title: "Produk Kopi Cendana ditambahkan",
+    detail: "Kopi Budi • Minuman",
+    time: "Aktivitas contoh"
+  }
+];
+
+function addActivity(title, detail) {
+  activities.unshift({
+    title,
+    detail,
+    time: "Baru saja"
+  });
+
+  activities = activities.slice(0, 8);
+}
+
+// ==================================================
+// INFORMASI HALAMAN
+// ==================================================
+
+const pageInfo = {
+  dashboard: {
+    title: "Dashboard",
+    description: "Pantau aktivitas marketplace ED Management."
+  },
+  approvals: {
+    title: "Persetujuan Penjual",
+    description: "Periksa dan tentukan persetujuan pendaftaran penjual."
+  },
+  buyers: {
+    title: "Data Pembeli",
+    description: "Kelola informasi akun pembeli."
+  },
+  sellers: {
+    title: "Data Penjual",
+    description: "Lihat dan kelola data penjual."
+  },
+  products: {
+    title: "Data Produk",
+    description: "Pantau produk yang ditampilkan di marketplace."
+  },
+  orders: {
+    title: "Data Pesanan",
+    description: "Pantau transaksi dan status pesanan."
+  },
+  reports: {
+    title: "Laporan Penjualan",
+    description: "Lihat ringkasan transaksi marketplace."
+  }
+};
+
+// ==================================================
+// FUNGSI BANTU
+// ==================================================
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -133,48 +232,33 @@ function escapeHTML(value) {
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
-    "'": "&#39;"
+    "'": "&#039;"
   })[char]);
 }
 
-function rupiah(value) {
+function rupiah(number) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0
-  }).format(value || 0);
+  }).format(number);
 }
 
-function initials(name) {
-  const value = String(name || "Pengguna").trim();
-
-  return value
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(part => part[0] || "")
-    .join("")
-    .toUpperCase();
+function getPendingCount() {
+  return sellers.filter(
+    seller => seller.status === "Menunggu"
+  ).length;
 }
 
-function formatDate(value) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "-";
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  }).format(date);
+function updateApprovalBadge() {
+  if (approvalBadge) {
+    approvalBadge.textContent = getPendingCount();
+    approvalBadge.hidden = getPendingCount() === 0;
+  }
 }
 
 function showToast(message) {
-  if (!toast) {
-    console.log(message);
-    return;
-  }
+  if (!toast) return;
 
   toast.textContent = message;
   toast.classList.add("show");
@@ -187,79 +271,50 @@ function showToast(message) {
 }
 
 function statusBadge(status) {
-  const normalized = String(status || "").toLowerCase();
+  let className = "pending";
 
-  let label = status || "Tidak diketahui";
-  let className = "status-pending";
-
-  if (["approved", "disetujui", "aktif", "selesai"].includes(normalized)) {
-    className = "status-approved";
-  } else if (
-    ["rejected", "ditolak", "nonaktif", "dibatalkan"].includes(normalized)
+  if (
+    status === "Aktif" ||
+    status === "Disetujui" ||
+    status === "Selesai"
   ) {
-    className = "status-rejected";
+    className = "success";
+  } else if (
+    status === "Ditolak" ||
+    status === "Nonaktif"
+  ) {
+    className = "danger";
+  } else if (status === "Diproses") {
+    className = "processing";
   }
 
   return `
-    <span class="status ${className}">
-      ${escapeHTML(label)}
-    </span>`;
+    <span class="status-badge ${className}">
+      ${escapeHTML(status)}
+    </span>
+  `;
 }
 
-function personCell(name, email) {
+function formatDateNow() {
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(new Date());
+}
+
+function emptyMessage(message) {
   return `
-    <div class="person-cell">
-      <div class="person-avatar">
-        ${escapeHTML(initials(name))}
-      </div>
-      <div class="person-details">
-        <strong>${escapeHTML(name || "Tanpa nama")}</strong>
-        <span>${escapeHTML(email || "-")}</span>
-      </div>
-    </div>`;
+    <div class="empty-state">
+      <p>${escapeHTML(message)}</p>
+    </div>
+  `;
 }
 
-/* ==================================================
-   STATUS PENJUAL
-================================================== */
-
-function getSellerStatus(profile) {
-  const status = String(profile.seller_status || "").toLowerCase();
-
-  if (status === "approved") return "Disetujui";
-  if (status === "rejected") return "Ditolak";
-
-  // Penjual yang belum memiliki status dianggap menunggu.
-  return "Menunggu";
-}
-
-function mapSeller(profile) {
-  return {
-    id: profile.id,
-    name: profile.nama || "Tanpa nama",
-    email: profile.email || "",
-    business: "-",
-    date: formatDate(profile.created_at),
-    status: getSellerStatus(profile)
-  };
-}
-
-function getPendingCount() {
-  return sellers.filter(seller => seller.status === "Menunggu").length;
-}
-
-function updateApprovalBadge() {
-  if (!approvalBadge) return;
-
-  const count = getPendingCount();
-
-  approvalBadge.textContent = count;
-  approvalBadge.style.display = count ? "inline-block" : "none";
-}
-
-/* ==================================================
-   AUTENTIKASI ADMIN
-================================================== */
+// ==================================================
+// LOGIN DEMO
+// ==================================================
 
 function showLogin(message = "") {
   if (loginPage) loginPage.hidden = false;
@@ -274,79 +329,17 @@ function showAdmin() {
   if (loginPage) loginPage.hidden = true;
   if (adminApp) adminApp.hidden = false;
 
-  if (loginMessage) {
-    loginMessage.textContent = "";
-  }
-}
-
-async function verifyAdmin() {
-  const { data: sessionData, error: sessionError } =
-    await supabaseClient.auth.getSession();
-
-  if (sessionError) {
-    console.error("Gagal memeriksa sesi:", sessionError.message);
-    showLogin("Gagal memeriksa sesi login. Silakan coba lagi.");
-    return false;
-  }
-
-  const user = sessionData.session?.user;
-
-  if (!user) {
-    showLogin();
-    return false;
-  }
-
-  // Periksa role pengguna yang sedang login.
-  const { data: profile, error: profileError } =
-    await supabaseClient
-      .from("profiles")
-      .select("id, nama, email, role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-  if (profileError) {
-    console.error("Gagal memeriksa role admin:", profileError);
-
-    showLogin(
-      "Profil tidak dapat dibaca. Periksa kebijakan RLS tabel profiles."
-    );
-
-    return false;
-  }
-
-  if (!profile || profile.role !== "admin") {
-    await supabaseClient.auth.signOut();
-
-    showLogin("Akun ini tidak memiliki akses admin.");
-    return false;
-  }
-
-  showAdmin();
-
-  const adminName = document.getElementById("adminName");
-  const adminEmailLabel = document.getElementById("adminEmailLabel");
-
   if (adminName) {
-    adminName.textContent = profile.nama || "Administrator";
+    adminName.textContent = "Administrator";
   }
 
   if (adminEmailLabel) {
-    adminEmailLabel.textContent = profile.email || user.email || "";
+    adminEmailLabel.textContent = DEMO_EMAIL;
   }
-
-  // Baru baca semua profil setelah role admin terverifikasi.
-  const loaded = await loadProfiles();
-
-  if (!loaded) {
-    showToast("Profil gagal dimuat. Periksa Console.");
-    return false;
-  }
-
-  return true;
 }
 
 if (loginForm) {
-  loginForm.addEventListener("submit", async event => {
+  loginForm.addEventListener("submit", event => {
     event.preventDefault();
 
     const email = document
@@ -357,635 +350,1228 @@ if (loginForm) {
       .getElementById("adminPassword")
       .value;
 
-    if (loginButton) loginButton.disabled = true;
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Memeriksa...";
+    }
 
-    if (loginMessage) loginMessage.textContent = "";
-
-    try {
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      const allowed = await verifyAdmin();
-
-      if (allowed) {
-        renderPage("dashboard");
-        showToast("Login admin berhasil.");
-      }
-    } catch (error) {
-      console.error("Login gagal:", error);
-
+    if (
+      email === DEMO_EMAIL &&
+      password === DEMO_PASSWORD
+    ) {
+      showAdmin();
+      renderPage("dashboard");
+      showToast("Login demo berhasil!");
+    } else {
       showLogin(
-        error.message || "Login gagal. Periksa email dan password."
+        "Email atau password salah. Periksa akun demo."
       );
-    } finally {
-      if (loginButton) loginButton.disabled = false;
+    }
+
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Masuk";
     }
   });
 }
 
-/* ==================================================
-   MEMBACA PROFILES DARI SUPABASE
-================================================== */
-
-async function loadProfiles() {
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("id, nama, email, role, seller_status, created_at")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Gagal membaca tabel profiles:", error);
-    showToast("Gagal membaca data profil dari Supabase.");
-    return false;
-  }
-
-  profiles = data || [];
-
-  buyers = profiles
-    .filter(profile => profile.role === "buyer")
-    .map(profile => ({
-      id: profile.id,
-      name: profile.nama || "Tanpa nama",
-      email: profile.email || "",
-      date: formatDate(profile.created_at)
-    }));
-
-  sellers = profiles
-    .filter(profile => profile.role === "seller")
-    .map(mapSeller);
-
-  console.log("Berhasil membaca tabel profiles!");
-  console.log("Jumlah seluruh profil:", profiles.length);
-  console.log("Jumlah pembeli:", buyers.length);
-  console.log("Jumlah penjual:", sellers.length);
-  console.log("Penjual menunggu:", getPendingCount());
-
-  updateApprovalBadge();
-
-  return true;
-}
-
-/* ==================================================
-   KARTU STATISTIK
-================================================== */
+// ==================================================
+// KARTU STATISTIK
+// ==================================================
 
 function statCard(title, number, icon, note) {
   return `
     <article class="stat-card">
       <div class="stat-top">
-        <span class="stat-title">${title}</span>
+        <span class="stat-title">${escapeHTML(title)}</span>
         <span class="stat-icon">${icon}</span>
       </div>
+
       <div class="stat-number">${number}</div>
-      <div class="stat-note">${note}</div>
-    </article>`;
+
+      <div class="stat-note">${escapeHTML(note)}</div>
+    </article>
+  `;
 }
 
-/* ==================================================
-   DASHBOARD
-================================================== */
+// ==================================================
+// DASHBOARD
+// ==================================================
 
 function renderDashboard() {
+  const completedOrders = orders.filter(
+    order => order.status === "Selesai"
+  );
+
+  const totalRevenue = completedOrders.reduce(
+    (sum, order) => sum + order.total,
+    0
+  );
+
+  const pendingSellers = sellers.filter(
+    seller => seller.status === "Menunggu"
+  );
+
+  const lowStockProducts = products.filter(
+    product => Number(product.stock) <= 10
+  );
+
+  const averageOrder = completedOrders.length
+    ? totalRevenue / completedOrders.length
+    : 0;
+
+  // Data grafik ilustrasi untuk mode demo.
+  const chartData = {
+    "7": {
+      labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
+      values: [120000, 185000, 150000, 230000, 195000, 280000, 245000]
+    },
+    "30": {
+      labels: ["Minggu 1", "Minggu 2", "Minggu 3", "Minggu 4"],
+      values: [620000, 850000, 740000, 1120000]
+    },
+    "90": {
+      labels: ["Bulan 1", "Bulan 2", "Bulan 3"],
+      values: [2100000, 2850000, 3340000]
+    }
+  };
+
+  const selectedRange = window.dashboardChartRange || "7";
+  const selectedChart = chartData[selectedRange];
+  const maxValue = Math.max(...selectedChart.values, 1);
+
+  const chartWidth = 640;
+  const chartHeight = 210;
+  const left = 44;
+  const right = 16;
+  const top = 18;
+  const bottom = 34;
+
+  const plotWidth = chartWidth - left - right;
+  const plotHeight = chartHeight - top - bottom;
+
+  const points = selectedChart.values.map((value, index) => {
+    const x = left + (
+      selectedChart.values.length === 1
+        ? plotWidth / 2
+        : (index / (selectedChart.values.length - 1)) * plotWidth
+    );
+
+    const y = top + plotHeight - (value / maxValue) * plotHeight;
+
+    return {
+      x,
+      y,
+      value,
+      label: selectedChart.labels[index]
+    };
+  });
+
+  const linePoints = points
+    .map(point => `${point.x},${point.y}`)
+    .join(" ");
+
+  const areaPoints = `
+    ${left},${top + plotHeight}
+    ${linePoints}
+    ${left + plotWidth},${top + plotHeight}
+  `;
+
+  const chartMarkup = `
+    <div class="sales-chart">
+
+      <div class="chart-y-labels">
+        <span>${rupiah(maxValue)}</span>
+        <span>${rupiah(maxValue * 0.5)}</span>
+        <span>Rp0</span>
+      </div>
+
+      <svg
+        class="chart-svg"
+        viewBox="0 0 ${chartWidth} ${chartHeight}"
+        role="img"
+        aria-label="Grafik penjualan contoh"
+      >
+        <defs>
+          <linearGradient
+            id="salesAreaGradient"
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop
+              offset="0%"
+              stop-color="#008653"
+              stop-opacity="0.22"
+            />
+            <stop
+              offset="100%"
+              stop-color="#008653"
+              stop-opacity="0.01"
+            />
+          </linearGradient>
+        </defs>
+
+        ${[0, 0.5, 1].map(ratio => {
+          const y = top + plotHeight * ratio;
+
+          return `
+            <line
+              x1="${left}"
+              y1="${y}"
+              x2="${left + plotWidth}"
+              y2="${y}"
+              class="chart-grid-line"
+            />
+          `;
+        }).join("")}
+
+        <polygon
+          points="${areaPoints}"
+          fill="url(#salesAreaGradient)"
+        />
+
+        <polyline
+          points="${linePoints}"
+          class="chart-line"
+        />
+
+        ${points.map(point => `
+          <circle
+            cx="${point.x}"
+            cy="${point.y}"
+            r="4.5"
+            class="chart-point"
+          >
+            <title>
+              ${escapeHTML(point.label)}: ${rupiah(point.value)}
+            </title>
+          </circle>
+        `).join("")}
+
+        ${points.map(point => `
+          <text
+            x="${point.x}"
+            y="${chartHeight - 8}"
+            text-anchor="middle"
+            class="chart-x-label"
+          >
+            ${escapeHTML(point.label)}
+          </text>
+        `).join("")}
+      </svg>
+    </div>
+  `;
+
+  const recentOrders = [...orders].reverse().slice(0, 5);
+  const recentActivities = activities.slice(0, 5);
+
   pageContent.innerHTML = `
+    <!-- STATISTIK UTAMA -->
     <div class="stats-grid">
       ${statCard(
         "Total Pembeli",
         buyers.length,
         "♙",
-        "Akun pembeli dari Supabase"
+        "Akun pembeli demo"
       )}
 
       ${statCard(
-        "Total Penjual Disetujui",
+        "Total Penjual",
         sellers.filter(s => s.status === "Disetujui").length,
         "♧",
-        "Penjual yang telah disetujui"
+        "Penjual yang disetujui"
       )}
 
       ${statCard(
         "Total Produk",
         products.length,
         "▣",
-        "Data produk masih contoh"
+        "Produk contoh"
       )}
 
       ${statCard(
         "Total Pesanan",
         orders.length,
         "▤",
-        "Data pesanan masih contoh"
+        "Pesanan contoh"
       )}
     </div>
 
-    <section class="panel">
+    <!-- STATISTIK TAMBAHAN -->
+    <div class="extra-stats-grid">
+
+      <article class="extra-stat-card">
+        <span class="extra-stat-icon">Rp</span>
+        <div>
+          <p>Total Omzet Selesai</p>
+          <strong>${rupiah(totalRevenue)}</strong>
+          <small>Dari pesanan berstatus selesai</small>
+        </div>
+      </article>
+
+      <article class="extra-stat-card">
+        <span class="extra-stat-icon warning">!</span>
+        <div>
+          <p>Menunggu Persetujuan</p>
+          <strong>${pendingSellers.length}</strong>
+          <small>Pengajuan penjual perlu diperiksa</small>
+        </div>
+      </article>
+
+      <article class="extra-stat-card">
+        <span class="extra-stat-icon blue">✓</span>
+        <div>
+          <p>Pesanan Selesai</p>
+          <strong>${completedOrders.length}</strong>
+          <small>Transaksi telah selesai</small>
+        </div>
+      </article>
+
+      <article class="extra-stat-card">
+        <span class="extra-stat-icon orange">▦</span>
+        <div>
+          <p>Stok Menipis</p>
+          <strong>${lowStockProducts.length}</strong>
+          <small>Produk dengan stok 10 atau kurang</small>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- GRAFIK PENJUALAN -->
+    <section class="panel chart-panel">
+
       <div class="panel-header">
         <div>
-          <h2>Pendaftaran Penjual Terbaru</h2>
-          <p>Data profil penjual dari Supabase.</p>
+          <h2>Grafik Penjualan</h2>
+          <p>Perkembangan nilai penjualan berdasarkan periode contoh.</p>
         </div>
 
-        <button class="btn btn-primary" data-page="approvals">
-          Lihat Semua →
-        </button>
+        <select
+          class="filter-select"
+          id="chartRange"
+          aria-label="Pilih periode grafik"
+        >
+          <option value="7" ${selectedRange === "7" ? "selected" : ""}>
+            7 hari
+          </option>
+
+          <option value="30" ${selectedRange === "30" ? "selected" : ""}>
+            30 hari
+          </option>
+
+          <option value="90" ${selectedRange === "90" ? "selected" : ""}>
+            3 bulan
+          </option>
+        </select>
       </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>CALON PENJUAL</th>
-              <th>NAMA USAHA</th>
-              <th>TANGGAL DAFTAR</th>
-              <th>STATUS</th>
-              <th>TINDAKAN</th>
-            </tr>
-          </thead>
+      <div class="chart-summary">
+        <div>
+          <span>Total omzet dari pesanan selesai</span>
+          <strong>${rupiah(totalRevenue)}</strong>
+        </div>
 
-          <tbody>
-            ${
-              sellers
-                .filter(s => s.status === "Menunggu")
-                .slice(0, 5)
-                .map(s => `
+        <span class="demo-label">Data grafik ilustrasi / demo</span>
+      </div>
+
+      ${chartMarkup}
+
+    </section>
+
+    <!-- PERSETUJUAN DAN RINGKASAN PENJUALAN -->
+    <div class="dashboard-two-columns">
+
+      <section class="panel">
+
+        <div class="panel-header">
+          <div>
+            <h2>Persetujuan Penjual</h2>
+            <p>Pendaftaran yang perlu diperiksa.</p>
+          </div>
+
+          <button class="btn btn-primary" data-page="approvals">
+            Lihat Semua
+          </button>
+        </div>
+
+        ${pendingSellers.length ? `
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama Toko</th>
+                  <th>Kategori</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${pendingSellers.slice(0, 4).map(seller => `
                   <tr>
-                    <td>${personCell(s.name, s.email)}</td>
-                    <td>${escapeHTML(s.business)}</td>
-                    <td>${escapeHTML(s.date)}</td>
-                    <td>${statusBadge(s.status)}</td>
+                    <td>${escapeHTML(seller.store)}</td>
+                    <td>${escapeHTML(seller.category)}</td>
+                    <td>${statusBadge(seller.status)}</td>
                     <td>
-                      <button class="btn btn-light" data-page="approvals">
-                        Periksa
+                      <button
+                        class="btn btn-primary"
+                        data-action="approve"
+                        data-id="${seller.id}"
+                      >
+                        Setujui
                       </button>
                     </td>
                   </tr>
-                `).join("")
-              ||
-              `<tr>
-                <td colspan="5" class="empty-state">
-                  Tidak ada pendaftaran yang menunggu.
-                </td>
-              </tr>`
-            }
-          </tbody>
-        </table>
-      </div>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        ` : emptyMessage("Tidak ada pendaftaran yang menunggu.")}
 
-      <div class="panel-footer">
-        <span>${getPendingCount()} pendaftaran menunggu persetujuan</span>
-        <span>Data pembeli dan penjual dari Supabase</span>
-      </div>
-    </section>
-
-    <div class="quick-grid">
-      <div class="quick-card">
-        <h3>Persetujuan Penjual</h3>
-        <p>Periksa pendaftaran penjual sebelum memberikan akses berjualan.</p>
-        <button class="btn btn-primary" data-page="approvals">
-          Buka Persetujuan
-        </button>
-      </div>
-
-      <div class="quick-card">
-        <h3>Data Marketplace</h3>
-        <p>Lihat profil pembeli dan penjual yang terdaftar.</p>
-        <button class="btn btn-light" data-page="buyers">
-          Lihat Pembeli
-        </button>
-      </div>
-    </div>`;
-}
-
-/* ==================================================
-   PERSETUJUAN PENJUAL
-================================================== */
-
-function renderApprovals() {
-  pageContent.innerHTML = `
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Daftar Pendaftaran Penjual</h2>
-          <p>Persetujuan akan diperbarui ke database Supabase.</p>
-        </div>
-
-        <div class="panel-actions">
-          <input
-            id="searchInput"
-            class="search-input"
-            placeholder="Cari nama atau email..."
-          >
-
-          <select id="statusFilter" class="filter-select">
-            <option value="Semua">Semua Status</option>
-            <option value="Menunggu">Menunggu</option>
-            <option value="Disetujui">Disetujui</option>
-            <option value="Ditolak">Ditolak</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>CALON PENJUAL</th>
-              <th>NAMA USAHA</th>
-              <th>TANGGAL DAFTAR</th>
-              <th>STATUS</th>
-              <th>TINDAKAN</th>
-            </tr>
-          </thead>
-
-          <tbody id="sellerTableBody"></tbody>
-        </table>
-      </div>
-
-      <div class="panel-footer">
-        <span id="sellerCount"></span>
-        <span>Data Supabase</span>
-      </div>
-    </section>`;
-
-  const searchInput = document.getElementById("searchInput");
-  const statusFilter = document.getElementById("statusFilter");
-
-  function updateTable() {
-    const query = searchInput.value.toLowerCase().trim();
-    const filter = statusFilter.value;
-
-    const filtered = sellers.filter(seller => {
-      const text =
-        `${seller.name} ${seller.email} ${seller.business}`.toLowerCase();
-
-      return text.includes(query) &&
-        (filter === "Semua" || seller.status === filter);
-    });
-
-    document.getElementById("sellerTableBody").innerHTML =
-      filtered.map(seller => `
-        <tr>
-          <td>${personCell(seller.name, seller.email)}</td>
-          <td>${escapeHTML(seller.business)}</td>
-          <td>${escapeHTML(seller.date)}</td>
-          <td>${statusBadge(seller.status)}</td>
-
-          <td>
-            ${
-              seller.status === "Menunggu"
-                ? `
-                  <div class="actions">
-                    <button
-                      class="btn btn-success"
-                      data-action="approve"
-                      data-id="${escapeHTML(seller.id)}"
-                    >Setujui</button>
-
-                    <button
-                      class="btn btn-danger"
-                      data-action="reject"
-                      data-id="${escapeHTML(seller.id)}"
-                    >Tolak</button>
-                  </div>
-                `
-                : `<span class="stat-note">Tidak ada tindakan</span>`
-            }
-          </td>
-        </tr>
-      `).join("") ||
-      `<tr>
-        <td colspan="5" class="empty-state">
-          Data tidak ditemukan.
-        </td>
-      </tr>`;
-
-    document.getElementById("sellerCount").textContent =
-      `${filtered.length} data ditampilkan · ${getPendingCount()} menunggu`;
-  }
-
-  searchInput.addEventListener("input", updateTable);
-  statusFilter.addEventListener("change", updateTable);
-
-  updateTable();
-}
-
-/* ==================================================
-   TABEL UMUM
-================================================== */
-
-function renderSimpleTable(headers, rows, description = "Data tersedia.") {
-  return `
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Daftar Data</h2>
-          <p>${escapeHTML(description)}</p>
-        </div>
-
-        <input
-          id="genericSearch"
-          class="search-input"
-          placeholder="Cari data..."
-        >
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>
-          </thead>
-
-          <tbody id="genericTableBody">
-            ${
-              rows.length
-                ? rows.map(row =>
-                    `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`
-                  ).join("")
-                : `<tr>
-                    <td colspan="${headers.length}" class="empty-state">
-                      Belum ada data.
-                    </td>
-                  </tr>`
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>`;
-}
-
-/* ==================================================
-   NAVIGASI HALAMAN
-================================================== */
-
-function renderPage(page) {
-  if (!pageInfo[page]) page = "dashboard";
-
-  currentPage = page;
-
-  const [title, description] = pageInfo[page];
-
-  pageTitle.textContent = title;
-  breadcrumbTitle.textContent = title;
-  pageDescription.textContent = description;
-
-  document.querySelectorAll(".nav-item").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === page);
-  });
-
-  if (page === "dashboard") {
-    renderDashboard();
-
-  } else if (page === "approvals") {
-    renderApprovals();
-
-  } else if (page === "buyers") {
-    pageContent.innerHTML = renderSimpleTable(
-      ["PEMBELI", "TANGGAL DAFTAR"],
-      buyers.map(b => [
-        personCell(b.name, b.email),
-        escapeHTML(b.date)
-      ]),
-      "Data pembeli dari Supabase."
-    );
-
-  } else if (page === "sellers") {
-    pageContent.innerHTML = renderSimpleTable(
-      ["PENJUAL", "NAMA USAHA", "STATUS"],
-      sellers.map(s => [
-        personCell(s.name, s.email),
-        escapeHTML(s.business),
-        statusBadge(s.status)
-      ]),
-      "Data penjual dari Supabase."
-    );
-
-  } else if (page === "products") {
-    pageContent.innerHTML = renderSimpleTable(
-      ["NAMA PRODUK", "PENJUAL", "HARGA", "STATUS"],
-      products.map(p => [
-        escapeHTML(p.name),
-        escapeHTML(p.seller),
-        rupiah(p.price),
-        statusBadge(p.status)
-      ]),
-      "Data produk masih contoh, belum terhubung ke Supabase."
-    );
-
-  } else if (page === "orders") {
-    pageContent.innerHTML = renderSimpleTable(
-      ["ID PESANAN", "PEMBELI", "PRODUK", "TOTAL", "STATUS"],
-      orders.map(o => [
-        escapeHTML(o.id),
-        escapeHTML(o.buyer),
-        escapeHTML(o.product),
-        rupiah(o.total),
-        statusBadge(o.status)
-      ]),
-      "Data pesanan masih contoh, belum terhubung ke Supabase."
-    );
-
-  } else if (page === "reports") {
-    const total = orders.reduce((sum, order) => sum + order.total, 0);
-
-    pageContent.innerHTML = `
-      <div class="stats-grid">
-        ${statCard("Total Pesanan", orders.length, "▤", "Data contoh")}
-        ${statCard("Nilai Pesanan", rupiah(total), "Rp", "Data contoh")}
-      </div>
+      </section>
 
       <section class="panel">
+
         <div class="panel-header">
           <div>
-            <h2>Ringkasan Pesanan</h2>
-            <p>Laporan ini belum berasal dari transaksi nyata.</p>
+            <h2>Ringkasan Penjualan</h2>
+            <p>Ikhtisar transaksi yang selesai.</p>
+          </div>
+
+          <button class="btn btn-light" data-page="reports">
+            Laporan
+          </button>
+        </div>
+
+        <div class="revenue-summary">
+          <span>Total omzet</span>
+          <strong>${rupiah(totalRevenue)}</strong>
+
+          <div class="revenue-detail">
+            <span>Pesanan selesai</span>
+            <b>${completedOrders.length}</b>
+          </div>
+
+          <div class="revenue-detail">
+            <span>Rata-rata pesanan selesai</span>
+            <b>${rupiah(averageOrder)}</b>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>PEMBELI</th>
-                <th>TOTAL</th>
-                <th>STATUS</th>
-              </tr>
-            </thead>
+      </section>
 
-            <tbody>
-              ${orders.map(o => `
-                <tr>
-                  <td>${escapeHTML(o.id)}</td>
-                  <td>${escapeHTML(o.buyer)}</td>
-                  <td>${rupiah(o.total)}</td>
-                  <td>${statusBadge(o.status)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+    </div>
+
+    <!-- PESANAN TERBARU -->
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Pesanan Terbaru</h2>
+          <p>Aktivitas transaksi terakhir pada data demo.</p>
         </div>
-      </section>`;
+
+        <button class="btn btn-light" data-page="orders">
+          Lihat Semua Pesanan
+        </button>
+      </div>
+
+      ${recentOrders.length ? renderTable(
+        [
+          "No. Pesanan",
+          "Pembeli",
+          "Produk",
+          "Total",
+          "Status",
+          "Tanggal"
+        ],
+        recentOrders.map(order => [
+          `<strong>${escapeHTML(order.id)}</strong>`,
+          escapeHTML(order.buyer),
+          escapeHTML(order.product),
+          rupiah(order.total),
+          statusBadge(order.status),
+          escapeHTML(order.date)
+        ])
+      ) : emptyMessage("Belum ada pesanan.")}
+
+    </section>
+
+    <!-- AKTIVITAS TERBARU -->
+    <section class="panel activity-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Aktivitas Terbaru</h2>
+          <p>Riwayat aktivitas selama sesi demo ini.</p>
+        </div>
+      </div>
+
+      ${recentActivities.length ? `
+        <div class="activity-list">
+
+          ${recentActivities.map((activity, index) => `
+            <div class="activity-item">
+
+              <span class="activity-marker">
+                ${index === 0 ? "●" : "○"}
+              </span>
+
+              <div class="activity-copy">
+                <strong>${escapeHTML(activity.title)}</strong>
+                <span>${escapeHTML(activity.detail)}</span>
+              </div>
+
+              <small>${escapeHTML(activity.time)}</small>
+
+            </div>
+          `).join("")}
+
+        </div>
+      ` : emptyMessage("Belum ada aktivitas.")}
+
+    </section>
+  `;
+}
+
+// ==================================================
+// PERSIAPAN TABEL
+// ==================================================
+
+function renderTable(headers, rows) {
+  if (!rows.length) {
+    return emptyMessage("Data tidak ditemukan.");
   }
 
-  const genericSearch = document.getElementById("genericSearch");
+  return `
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            ${headers.map(header => `
+              <th>${escapeHTML(header)}</th>
+            `).join("")}
+          </tr>
+        </thead>
 
-  if (genericSearch) {
-    genericSearch.addEventListener("input", () => {
-      const query = genericSearch.value.toLowerCase();
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              ${row.map(cell => `
+                <td>${cell}</td>
+              `).join("")}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
 
-      document.querySelectorAll("#genericTableBody tr").forEach(row => {
-        row.style.display =
-          row.textContent.toLowerCase().includes(query) ? "" : "none";
-      });
-    });
+function searchBox(placeholder = "Cari data...") {
+  return `
+    <div class="toolbar">
+      <input
+        type="search"
+        id="tableSearch"
+        class="search-input"
+        placeholder="${escapeHTML(placeholder)}"
+      >
+    </div>
+  `;
+}
+
+// ==================================================
+// PERSETUJUAN PENJUAL
+// ==================================================
+
+function renderApprovals() {
+  const pendingSellers = sellers.filter(
+    seller => seller.status === "Menunggu"
+  );
+
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Pendaftaran Penjual</h2>
+          <p>
+            Ada ${pendingSellers.length} pendaftaran yang menunggu.
+          </p>
+        </div>
+      </div>
+
+      ${searchBox("Cari nama atau email penjual...")}
+
+      <div id="tableResult">
+        ${renderApprovalTable(pendingSellers)}
+      </div>
+
+    </section>
+  `;
+
+  const search = document.getElementById("tableSearch");
+
+  search.addEventListener("input", () => {
+    const keyword = search.value.toLowerCase();
+
+    const filtered = pendingSellers.filter(seller =>
+      seller.name.toLowerCase().includes(keyword) ||
+      seller.email.toLowerCase().includes(keyword) ||
+      seller.store.toLowerCase().includes(keyword)
+    );
+
+    document.getElementById("tableResult").innerHTML =
+      renderApprovalTable(filtered);
+  });
+}
+
+function renderApprovalTable(data) {
+  return renderTable(
+    [
+      "Nama Penjual",
+      "Email",
+      "Nama Toko",
+      "Kategori",
+      "Tanggal",
+      "Aksi"
+    ],
+    data.map(seller => [
+      escapeHTML(seller.name),
+      escapeHTML(seller.email),
+      escapeHTML(seller.store),
+      escapeHTML(seller.category),
+      escapeHTML(seller.date),
+      `
+        <button
+          class="btn btn-primary"
+          data-action="approve"
+          data-id="${seller.id}"
+        >
+          Setujui
+        </button>
+
+        <button
+          class="btn btn-danger"
+          data-action="reject"
+          data-id="${seller.id}"
+        >
+          Tolak
+        </button>
+      `
+    ])
+  );
+}
+
+// ==================================================
+// DATA PEMBELI
+// ==================================================
+
+function renderBuyers() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Pembeli</h2>
+          <p>Total ${buyers.length} pembeli contoh.</p>
+        </div>
+      </div>
+
+      ${searchBox("Cari nama, email, atau nomor telepon...")}
+
+      <div id="tableResult">
+        ${renderBuyerTable(buyers)}
+      </div>
+
+    </section>
+  `;
+
+  document.getElementById("tableSearch").addEventListener(
+    "input",
+    event => {
+      const keyword = event.target.value.toLowerCase();
+
+      const filtered = buyers.filter(buyer =>
+        buyer.name.toLowerCase().includes(keyword) ||
+        buyer.email.toLowerCase().includes(keyword) ||
+        buyer.phone.toLowerCase().includes(keyword)
+      );
+
+      document.getElementById("tableResult").innerHTML =
+        renderBuyerTable(filtered);
+    }
+  );
+}
+
+function renderBuyerTable(data) {
+  return renderTable(
+    [
+      "Nama",
+      "Email",
+      "Nomor Telepon",
+      "Tanggal Daftar",
+      "Status"
+    ],
+    data.map(buyer => [
+      escapeHTML(buyer.name),
+      escapeHTML(buyer.email),
+      escapeHTML(buyer.phone),
+      escapeHTML(buyer.date),
+      statusBadge(buyer.status)
+    ])
+  );
+}
+
+// ==================================================
+// DATA PENJUAL
+// ==================================================
+
+function renderSellers() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Penjual</h2>
+          <p>Total ${sellers.length} penjual contoh.</p>
+        </div>
+      </div>
+
+      ${searchBox("Cari nama penjual atau nama toko...")}
+
+      <div id="tableResult">
+        ${renderSellerTable(sellers)}
+      </div>
+
+    </section>
+  `;
+
+  document.getElementById("tableSearch").addEventListener(
+    "input",
+    event => {
+      const keyword = event.target.value.toLowerCase();
+
+      const filtered = sellers.filter(seller =>
+        seller.name.toLowerCase().includes(keyword) ||
+        seller.email.toLowerCase().includes(keyword) ||
+        seller.store.toLowerCase().includes(keyword)
+      );
+
+      document.getElementById("tableResult").innerHTML =
+        renderSellerTable(filtered);
+    }
+  );
+}
+
+function renderSellerTable(data) {
+  return renderTable(
+    [
+      "Nama Penjual",
+      "Email",
+      "Nama Toko",
+      "Kategori",
+      "Tanggal Daftar",
+      "Status"
+    ],
+    data.map(seller => [
+      escapeHTML(seller.name),
+      escapeHTML(seller.email),
+      escapeHTML(seller.store),
+      escapeHTML(seller.category),
+      escapeHTML(seller.date),
+      statusBadge(seller.status)
+    ])
+  );
+}
+
+// ==================================================
+// DATA PRODUK
+// ==================================================
+
+function renderProducts() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Produk</h2>
+          <p>Total ${products.length} produk contoh.</p>
+        </div>
+      </div>
+
+      ${searchBox("Cari nama produk atau penjual...")}
+
+      <div id="tableResult">
+        ${renderProductTable(products)}
+      </div>
+
+    </section>
+  `;
+
+  document.getElementById("tableSearch").addEventListener(
+    "input",
+    event => {
+      const keyword = event.target.value.toLowerCase();
+
+      const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(keyword) ||
+        product.seller.toLowerCase().includes(keyword) ||
+        product.category.toLowerCase().includes(keyword)
+      );
+
+      document.getElementById("tableResult").innerHTML =
+        renderProductTable(filtered);
+    }
+  );
+}
+
+function renderProductTable(data) {
+  return renderTable(
+    [
+      "Nama Produk",
+      "Penjual",
+      "Kategori",
+      "Harga",
+      "Stok",
+      "Status",
+      "Aksi"
+    ],
+    data.map(product => [
+      escapeHTML(product.name),
+      escapeHTML(product.seller),
+      escapeHTML(product.category),
+      rupiah(product.price),
+      product.stock,
+      statusBadge(product.status),
+      `
+        <button
+          class="btn ${
+            product.status === "Aktif"
+              ? "btn-danger"
+              : "btn-primary"
+          }"
+          data-action="toggle-product"
+          data-id="${product.id}"
+        >
+          ${
+            product.status === "Aktif"
+              ? "Nonaktifkan"
+              : "Aktifkan"
+          }
+        </button>
+      `
+    ])
+  );
+}
+
+// ==================================================
+// DATA PESANAN
+// ==================================================
+
+function renderOrders() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Pesanan</h2>
+          <p>Total ${orders.length} pesanan contoh.</p>
+        </div>
+      </div>
+
+      ${searchBox("Cari nomor pesanan atau nama pembeli...")}
+
+      <div id="tableResult">
+        ${renderOrderTable(orders)}
+      </div>
+
+    </section>
+  `;
+
+  document.getElementById("tableSearch").addEventListener(
+    "input",
+    event => {
+      const keyword = event.target.value.toLowerCase();
+
+      const filtered = orders.filter(order =>
+        order.id.toLowerCase().includes(keyword) ||
+        order.buyer.toLowerCase().includes(keyword) ||
+        order.product.toLowerCase().includes(keyword)
+      );
+
+      document.getElementById("tableResult").innerHTML =
+        renderOrderTable(filtered);
+    }
+  );
+}
+
+function renderOrderTable(data) {
+  return renderTable(
+    [
+      "Nomor Pesanan",
+      "Pembeli",
+      "Produk",
+      "Total",
+      "Tanggal",
+      "Status"
+    ],
+    data.map(order => [
+      escapeHTML(order.id),
+      escapeHTML(order.buyer),
+      escapeHTML(order.product),
+      rupiah(order.total),
+      escapeHTML(order.date),
+      statusBadge(order.status)
+    ])
+  );
+}
+
+// ==================================================
+// LAPORAN PENJUALAN
+// ==================================================
+
+function renderReports() {
+  const completedOrders = orders.filter(
+    order => order.status === "Selesai"
+  );
+
+  const totalRevenue = completedOrders.reduce(
+    (sum, order) => sum + order.total,
+    0
+  );
+
+  const pendingOrders = orders.filter(
+    order => order.status === "Menunggu"
+  ).length;
+
+  pageContent.innerHTML = `
+    <div class="stats-grid">
+
+      ${statCard(
+        "Total Transaksi Selesai",
+        completedOrders.length,
+        "✓",
+        "Jumlah pesanan berstatus selesai"
+      )}
+
+      ${statCard(
+        "Total Penjualan",
+        rupiah(totalRevenue),
+        "Rp",
+        "Dihitung dari pesanan selesai"
+      )}
+
+      ${statCard(
+        "Pesanan Menunggu",
+        pendingOrders,
+        "▤",
+        "Pesanan yang belum selesai"
+      )}
+
+    </div>
+
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Ringkasan Transaksi</h2>
+          <p>Data laporan contoh untuk demo.</p>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          data-action="export-report"
+        >
+          Ekspor CSV
+        </button>
+      </div>
+
+      ${renderOrderTable(orders)}
+
+    </section>
+  `;
+}
+
+// ==================================================
+// GANTI PERIODE GRAFIK
+// ==================================================
+
+document.addEventListener("change", event => {
+  if (event.target && event.target.id === "chartRange") {
+    window.dashboardChartRange = event.target.value;
+    renderDashboard();
   }
+});
+
+// ==================================================
+// NAVIGASI HALAMAN
+// ==================================================
+
+function renderPage(page) {
+  if (!pageInfo[page]) return;
+
+  currentPage = page;
+
+  const info = pageInfo[page];
+
+  if (pageTitle) {
+    pageTitle.textContent = info.title;
+  }
+
+  if (breadcrumbTitle) {
+    breadcrumbTitle.textContent = info.title;
+  }
+
+  if (pageDescription) {
+    pageDescription.textContent = info.description;
+  }
+
+  document.querySelectorAll(".nav-item[data-page]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === page
+    );
+  });
 
   updateApprovalBadge();
 
-  document.getElementById("sidebar")?.classList.remove("open");
-}
+  switch (page) {
+    case "dashboard":
+      renderDashboard();
+      break;
 
-/* ==================================================
-   AKSI PERSETUJUAN / PENOLAKAN
-================================================== */
+    case "approvals":
+      renderApprovals();
+      break;
 
-async function updateSellerStatus(sellerId, action) {
-  const seller = sellers.find(s => s.id === sellerId);
+    case "buyers":
+      renderBuyers();
+      break;
 
-  if (!seller || seller.status !== "Menunggu") return;
+    case "sellers":
+      renderSellers();
+      break;
 
-  const accepted = action === "approve";
+    case "products":
+      renderProducts();
+      break;
 
-  const confirmed = window.confirm(
-    `${accepted ? "Setujui" : "Tolak"} pendaftaran ${seller.name}?`
-  );
+    case "orders":
+      renderOrders();
+      break;
 
-  if (!confirmed) return;
-
-  const newStatus = accepted ? "approved" : "rejected";
-
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .update({ seller_status: newStatus })
-    .eq("id", sellerId)
-    .eq("role", "seller")
-    .select("id, seller_status");
-
-  if (error) {
-    console.error("Gagal memperbarui status penjual:", error);
-
-    showToast(
-      "Gagal memperbarui status. Periksa kebijakan UPDATE RLS."
-    );
-
-    return;
+    case "reports":
+      renderReports();
+      break;
   }
 
-  if (!data || data.length === 0) {
-    showToast(
-      "Tidak ada data yang diperbarui. Periksa RLS dan status penjual."
-    );
-
-    return;
+  if (sidebar) {
+    sidebar.classList.remove("open");
   }
-
-  const loaded = await loadProfiles();
-
-  if (!loaded) return;
-
-  renderPage(currentPage);
-
-  showToast(
-    accepted
-      ? "Penjual berhasil disetujui."
-      : "Pendaftaran penjual berhasil ditolak."
-  );
 }
 
-/* ==================================================
-   EVENT NAVIGASI DAN AKSI
-================================================== */
+// ==================================================
+// TOMBOL DAN AKSI
+// ==================================================
 
-document.addEventListener("click", async event => {
+document.addEventListener("click", event => {
   const pageButton = event.target.closest("[data-page]");
 
   if (pageButton) {
-    // Jangan izinkan navigasi admin saat belum login.
-    if (!adminApp || adminApp.hidden) return;
+    const page = pageButton.dataset.page;
 
-    renderPage(pageButton.dataset.page);
+    if (pageInfo[page]) {
+      renderPage(page);
+    }
+
     return;
   }
 
   const actionButton = event.target.closest("[data-action]");
 
-  if (actionButton) {
-    if (!adminApp || adminApp.hidden) return;
+  if (!actionButton) return;
 
-    const action = actionButton.dataset.action;
-    const sellerId = actionButton.dataset.id;
+  const action = actionButton.dataset.action;
+  const id = Number(actionButton.dataset.id);
 
-    if (action !== "approve" && action !== "reject") return;
+  // SETUJUI PENJUAL
+  if (action === "approve") {
+    const seller = sellers.find(item => item.id === id);
 
-    await updateSellerStatus(sellerId, action);
+    if (!seller) return;
+
+    seller.status = "Disetujui";
+
+    addActivity(
+      `Penjual ${seller.store} disetujui`,
+      `${seller.category} • Persetujuan penjual`
+    );
+
+    updateApprovalBadge();
+    renderPage(currentPage);
+
+    showToast(
+      `Penjual ${seller.store} berhasil disetujui.`
+    );
+  }
+
+  // TOLAK PENJUAL
+  if (action === "reject") {
+    const seller = sellers.find(item => item.id === id);
+
+    if (!seller) return;
+
+    const confirmed = confirm(
+      `Apakah kamu yakin ingin menolak pendaftaran ${seller.store}?`
+    );
+
+    if (!confirmed) return;
+
+    seller.status = "Ditolak";
+
+    addActivity(
+      `Pengajuan ${seller.store} ditolak`,
+      `${seller.category} • Persetujuan penjual`
+    );
+
+    updateApprovalBadge();
+    renderPage(currentPage);
+
+    showToast(
+      `Pendaftaran ${seller.store} ditolak.`
+    );
+  }
+
+  // AKTIF / NONAKTIF PRODUK
+  if (action === "toggle-product") {
+    const product = products.find(item => item.id === id);
+
+    if (!product) return;
+
+    product.status =
+      product.status === "Aktif"
+        ? "Nonaktif"
+        : "Aktif";
+
+    addActivity(
+      `Status produk ${product.name} diubah`,
+      `Status sekarang: ${product.status}`
+    );
+
+    renderPage(currentPage);
+
+    showToast(
+      `${product.name}: status menjadi ${product.status}.`
+    );
+  }
+
+  // EKSPOR LAPORAN
+  if (action === "export-report") {
+    exportReport();
   }
 });
 
-/* ==================================================
-   MENU MOBILE
-================================================== */
+// ==================================================
+// EKSPOR LAPORAN KE CSV
+// ==================================================
 
-document.getElementById("mobileMenu")?.addEventListener("click", () => {
-  document.getElementById("sidebar")?.classList.toggle("open");
-});
+function exportReport() {
+  const rows = [
+    [
+      "Nomor Pesanan",
+      "Pembeli",
+      "Produk",
+      "Total",
+      "Tanggal",
+      "Status"
+    ],
 
-/* ==================================================
-   LOGOUT
-================================================== */
+    ...orders.map(order => [
+      order.id,
+      order.buyer,
+      order.product,
+      order.total,
+      order.date,
+      order.status
+    ])
+  ];
 
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-  const confirmed = window.confirm("Yakin ingin keluar dari panel admin?");
+  const csv = rows
+    .map(row =>
+      row.map(value =>
+        `"${String(value).replace(/"/g, '""')}"`
+      ).join(",")
+    )
+    .join("\n");
 
-  if (!confirmed) return;
+  const blob = new Blob(
+    ["\uFEFF" + csv],
+    { type: "text/csv;charset=utf-8;" }
+  );
 
-  const { error } = await supabaseClient.auth.signOut();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-  if (error) {
-    console.error("Logout gagal:", error);
-    showToast("Logout gagal. Silakan coba lagi.");
-    return;
-  }
+  link.href = url;
+  link.download = "laporan-penjualan-demo.csv";
 
-  profiles = [];
-  sellers = [];
-  buyers = [];
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
-  showLogin();
-  showToast("Berhasil logout.");
-});
+  URL.revokeObjectURL(url);
 
-/* ==================================================
-   TANGGAL DAN INISIALISASI
-================================================== */
-
-const currentDate = document.getElementById("currentDate");
-
-if (currentDate) {
-  currentDate.textContent = new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }).format(new Date());
+  showToast("Laporan CSV berhasil dibuat.");
 }
 
-// Jangan membuka dashboard sebelum memeriksa sesi dan role admin.
+// ==================================================
+// MENU MOBILE
+// ==================================================
+
+if (mobileMenu && sidebar) {
+  mobileMenu.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+  });
+}
+
+// ==================================================
+// LOGOUT
+// ==================================================
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    const confirmed = confirm(
+      "Apakah kamu yakin ingin keluar dari panel admin?"
+    );
+
+    if (!confirmed) return;
+
+    showLogin();
+
+    const emailInput = document.getElementById("adminEmail");
+    const passwordInput = document.getElementById("adminPassword");
+
+    if (emailInput) emailInput.value = "";
+    if (passwordInput) passwordInput.value = "";
+
+    showToast("Kamu telah keluar dari panel admin.");
+  });
+}
+
+// ==================================================
+// INISIALISASI
+// ==================================================
+
+if (currentDate) {
+  currentDate.textContent = formatDateNow();
+}
+
+updateApprovalBadge();
 showLogin();
 
-verifyAdmin().then(allowed => {
-  if (allowed) {
-    renderPage("dashboard");
-  }
-});
+console.log("Admin ED Management berjalan dalam mode demo.");
