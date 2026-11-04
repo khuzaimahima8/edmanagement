@@ -1645,3 +1645,47 @@ select:focus-visible {
 .notification-panel:not([hidden]) {
   pointer-events: auto;
 }
+
+
+/* =====================================
+   PENGATURAN ADMIN
+===================================== */
+
+.settings-form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-field input {
+  width: 100%;
+  max-width: 500px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+.settings-field input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(0, 107, 66, 0.08);
+}
+
+.settings-form button {
+  width: fit-content;
+  padding: 0 20px;
+}

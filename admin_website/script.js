@@ -177,6 +177,27 @@ let activities = [
   }
 ];
 
+let complaints = [
+  {
+    id: 1,
+    name: "Rina Amelia",
+    role: "Pembeli",
+    subject: "Pesanan belum diterima",
+    message: "Saya sudah melakukan pemesanan tetapi barang belum sampai.",
+    date: "25 Oktober 2026",
+    status: "Menunggu"
+  },
+  {
+    id: 2,
+    name: "Ayu Craft",
+    role: "Penjual",
+    subject: "Kendala produk",
+    message: "Produk saya belum muncul di marketplace.",
+    date: "24 Oktober 2026",
+    status: "Diproses"
+  }
+];
+
 function addActivity(title, detail) {
   activities.unshift({
     title,
@@ -186,6 +207,8 @@ function addActivity(title, detail) {
 
   activities = activities.slice(0, 8);
 }
+
+
 
 // ==================================================
 // INFORMASI HALAMAN
@@ -219,6 +242,14 @@ const pageInfo = {
   reports: {
     title: "Laporan Penjualan",
     description: "Lihat ringkasan transaksi marketplace."
+  },
+  complaints: {
+    title: "Pusat Keluhan",
+    description: "Kelola laporan dan keluhan pembeli maupun penjual."
+  },
+  settings: {
+    title: "Pengaturan Admin",
+    description: "Kelola informasi profil dan pengaturan administrator."
   }
 };
 
@@ -1366,6 +1397,14 @@ function renderPage(page) {
     case "reports":
       renderReports();
       break;
+    
+    case "complaints":
+      renderComplaints();
+      break;
+
+    case "settings":
+      renderSettings();
+      break;
   }
 
   if (sidebar) {
@@ -1559,6 +1598,125 @@ if (logoutBtn) {
 
     showToast("Kamu telah keluar dari panel admin.");
   });
+}
+
+//==================================================
+//DATA KELUHAN
+//==================================================
+function renderComplaints() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Daftar Keluhan</h2>
+          <p>Kelola laporan dari pembeli dan penjual.</p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Jenis Pengguna</th>
+              <th>Keluhan</th>
+              <th>Tanggal</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${complaints.map(item => `
+              <tr>
+                <td>${escapeHTML(item.name)}</td>
+                <td>${escapeHTML(item.role)}</td>
+                <td>${escapeHTML(item.subject)}</td>
+                <td>${escapeHTML(item.date)}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>
+                  <button
+                    class="btn btn-primary"
+                    data-action="view-complaint"
+                    data-id="${item.id}">
+                    Detail
+                  </button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  `;
+}
+
+//==================================================
+//PENGATURAN ADMIN
+//==================================================
+function renderSettings() {
+  pageContent.innerHTML = `
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Profil Administrator</h2>
+          <p>Informasi akun administrator ED Management.</p>
+        </div>
+      </div>
+
+      <form id="adminSettingsForm" class="settings-form">
+
+        <div class="settings-field">
+          <label>Nama Administrator</label>
+          <input
+            type="text"
+            id="settingsName"
+            value="${escapeHTML(
+              localStorage.getItem("adminName") || "Administrator"
+            )}"
+            required
+          >
+        </div>
+
+        <div class="settings-field">
+          <label>Email Administrator</label>
+          <input
+            type="email"
+            id="settingsEmail"
+            value="${escapeHTML(
+              localStorage.getItem("adminEmail") || DEMO_EMAIL
+            )}"
+            required
+          >
+        </div>
+
+        <button class="btn btn-primary" type="submit">
+          Simpan Perubahan
+        </button>
+
+      </form>
+
+    </section>
+  `;
+
+  document.getElementById("adminSettingsForm")
+    .addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById("settingsName").value.trim();
+      const email = document.getElementById("settingsEmail").value.trim();
+
+      localStorage.setItem("adminName", name);
+      localStorage.setItem("adminEmail", email);
+
+      if (adminName) adminName.textContent = name;
+      if (adminEmailLabel) adminEmailLabel.textContent = email;
+
+      showToast("Profil administrator berhasil diperbarui.");
+    });
 }
 
 // ==================================================
