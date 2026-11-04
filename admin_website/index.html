@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -11,17 +12,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-  <!-- HALAMAN LOGIN ADMIN -->
+  <!-- =====================================
+       HALAMAN LOGIN ADMIN
+  ====================================== -->
+
   <section id="loginPage" class="login-page">
+
     <div class="login-card">
+
       <div class="login-logo">ED</div>
+
       <h1>ED Management</h1>
       <p>Masuk ke panel administrator</p>
 
       <form id="loginForm">
+
         <label for="adminEmail">Email Admin</label>
+
         <input
           type="email"
           id="adminEmail"
@@ -31,6 +41,7 @@
         >
 
         <label for="adminPassword">Password</label>
+
         <input
           type="password"
           id="adminPassword"
@@ -39,108 +50,357 @@
           required
         >
 
-        <button type="submit" id="loginBtn">Masuk</button>
+        <button type="submit" id="loginBtn">
+          Masuk
+        </button>
+
         <p id="loginMessage" role="alert"></p>
+
       </form>
+
     </div>
+
   </section>
 
-  <!-- DASHBOARD ADMIN -->
+
+  <!-- =====================================
+       DASHBOARD ADMIN
+  ====================================== -->
+
   <div class="app" id="adminApp" hidden>
 
+    <!-- =================================
+         SIDEBAR
+    ================================== -->
+
     <aside class="sidebar" id="sidebar">
+
       <div class="brand">
+
         <div class="brand-icon">ED</div>
+
         <div>
           <h2>ED Management</h2>
           <p>Admin Panel</p>
         </div>
+
       </div>
 
       <div class="menu-label">MENU UTAMA</div>
 
       <nav class="navigation">
+
         <button class="nav-item active" data-page="dashboard">
-          <span class="nav-icon">▦</span> Dashboard
+          <span class="nav-icon">▦</span>
+          Dashboard
         </button>
 
         <button class="nav-item" data-page="approvals">
-          <span class="nav-icon">✓</span> Persetujuan Penjual
+          <span class="nav-icon">✓</span>
+          Persetujuan Penjual
           <span class="nav-badge" id="approvalBadge">0</span>
         </button>
 
         <button class="nav-item" data-page="buyers">
-          <span class="nav-icon">♙</span> Data Pembeli
+          <span class="nav-icon">♙</span>
+          Data Pembeli
         </button>
 
         <button class="nav-item" data-page="sellers">
-          <span class="nav-icon">♧</span> Data Penjual
+          <span class="nav-icon">♧</span>
+          Data Penjual
         </button>
 
         <button class="nav-item" data-page="products">
-          <span class="nav-icon">▣</span> Data Produk
+          <span class="nav-icon">▣</span>
+          Data Produk
         </button>
 
         <button class="nav-item" data-page="orders">
-          <span class="nav-icon">▤</span> Data Pesanan
+          <span class="nav-icon">▤</span>
+          Data Pesanan
         </button>
 
         <button class="nav-item" data-page="reports">
-          <span class="nav-icon">▥</span> Laporan Penjualan
+          <span class="nav-icon">▥</span>
+          Laporan Penjualan
         </button>
+
       </nav>
 
+
+      <!-- PROFIL ADMIN -->
+
       <div class="sidebar-bottom">
+
         <div class="admin-profile">
+
           <div class="avatar">A</div>
+
           <div class="profile-info">
+
             <strong id="adminName">Administrator</strong>
-            <span id="adminEmailLabel">Admin ED Management</span>
+
+            <span id="adminEmailLabel">
+              Admin ED Management
+            </span>
+
           </div>
+
         </div>
 
-        <button class="logout-btn" id="logoutBtn">↪ Keluar</button>
+        <button class="logout-btn" id="logoutBtn">
+          ↪ Keluar
+        </button>
+
       </div>
+
     </aside>
 
+
+    <!-- =================================
+         KONTEN UTAMA
+    ================================== -->
+
     <main class="main-content">
+
+
+      <!-- =================================
+           TOPBAR
+      ================================== -->
+
       <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Buka menu">☰</button>
+
+        <button
+          class="mobile-menu"
+          id="mobileMenu"
+          aria-label="Buka menu"
+          type="button"
+        >
+          ☰
+        </button>
+
+
+        <!-- BREADCRUMB -->
 
         <div class="breadcrumb">
-          ED Management / <strong id="breadcrumbTitle">Dashboard</strong>
+          ED Management /
+          <strong id="breadcrumbTitle">Dashboard</strong>
         </div>
+
+
+        <!-- BAGIAN KANAN TOPBAR -->
 
         <div class="topbar-right">
+
+
+          <!-- =================================
+               NOTIFICATION
+          ================================== -->
+
+          <div class="notification-wrapper">
+
+
+            <!-- TOMBOL LONCENG -->
+
+            <button
+              type="button"
+              class="notification-button"
+              id="notificationButton"
+              aria-label="Buka notifikasi"
+            >
+
+              <span class="notification-bell">♧</span>
+
+              <span
+                class="notification-count"
+                id="notificationCount"
+              >
+                3
+              </span>
+
+            </button>
+
+
+            <!-- =================================
+                 PANEL NOTIFIKASI
+            ================================== -->
+
+            <div
+              class="notification-panel"
+              id="notificationPanel"
+              hidden
+            >
+
+
+              <!-- HEADER NOTIFIKASI -->
+
+              <div class="notification-header">
+
+                <h3>Notifications</h3>
+
+                <button
+                  type="button"
+                  class="mark-all-read"
+                  id="markAllRead"
+                >
+                  Mark all as read
+                </button>
+
+              </div>
+
+
+              <!-- TAB KATEGORI -->
+
+              <div class="notification-tabs">
+
+                <button
+                  class="notification-tab active"
+                  data-filter="all"
+                  type="button"
+                >
+                  All
+
+                  <span id="notificationTabCount">
+                    3
+                  </span>
+                </button>
+
+
+                <button
+                  class="notification-tab"
+                  data-filter="order"
+                  type="button"
+                >
+                  Pesanan
+                </button>
+
+
+                <button
+                  class="notification-tab"
+                  data-filter="seller"
+                  type="button"
+                >
+                  Penjual
+                </button>
+
+              </div>
+
+
+              <!-- DAFTAR NOTIFIKASI -->
+
+              <div
+                class="notification-list"
+                id="notificationList"
+              ></div>
+
+
+            </div>
+            <!-- AKHIR PANEL NOTIFIKASI -->
+
+
+          </div>
+          <!-- AKHIR NOTIFICATION WRAPPER -->
+
+
+          <!-- STATUS ADMIN -->
+
           <span class="status-dot"></span>
-          <span class="admin-label">Panel Admin</span>
+
+          <span class="admin-label">
+            Panel Admin
+          </span>
+
+
         </div>
+        <!-- AKHIR TOPBAR RIGHT -->
+
+
       </header>
+      <!-- AKHIR TOPBAR -->
+
+
+      <!-- =================================
+           ISI HALAMAN
+      ================================== -->
 
       <div class="content">
+
+
+        <!-- JUDUL HALAMAN -->
+
         <section class="page-heading">
+
           <div>
-            <p class="eyebrow">ADMINISTRATOR</p>
-            <h1 id="pageTitle">Dashboard</h1>
-            <p id="pageDescription">Pantau aktivitas marketplace ED Management.</p>
+
+            <p class="eyebrow">
+              ADMINISTRATOR
+            </p>
+
+            <h1 id="pageTitle">
+              Dashboard
+            </h1>
+
+            <p id="pageDescription">
+              Pantau aktivitas marketplace ED Management.
+            </p>
+
           </div>
 
-          <div class="date-label" id="currentDate"></div>
+
+          <!-- TANGGAL -->
+
+          <div
+            class="date-label"
+            id="currentDate"
+          ></div>
+
         </section>
 
+
+        <!-- KONTEN DINAMIS -->
+
         <div id="pageContent"></div>
+
+
+        <!-- FOOTER -->
 
         <footer>
           © 2026 ED Management · Admin Marketplace UMKM
         </footer>
+
+
       </div>
+      <!-- AKHIR CONTENT -->
+
+
     </main>
+    <!-- AKHIR MAIN CONTENT -->
+
+
   </div>
+  <!-- AKHIR DASHBOARD ADMIN -->
 
-  <div class="toast" id="toast" role="status"></div>
 
-  <!-- Supabase JS -->
+  <!-- =====================================
+       TOAST NOTIFICATION
+  ====================================== -->
+
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+  ></div>
+
+
+  <!-- =====================================
+       SUPABASE JS
+  ====================================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- JAVASCRIPT ADMIN -->
+
   <script src="script.js"></script>
 
 </body>

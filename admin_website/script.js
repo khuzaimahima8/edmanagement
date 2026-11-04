@@ -648,8 +648,7 @@ function renderDashboard() {
           <h2>Grafik Penjualan</h2>
           <p>Perkembangan nilai penjualan berdasarkan periode contoh.</p>
         </div>
-
-        <select
+                <select
           class="filter-select"
           id="chartRange"
           aria-label="Pilih periode grafik"
@@ -1168,7 +1167,6 @@ function renderProductTable(data) {
     ])
   );
 }
-
 // ==================================================
 // DATA PESANAN
 // ==================================================
@@ -1575,3 +1573,241 @@ updateApprovalBadge();
 showLogin();
 
 console.log("Admin ED Management berjalan dalam mode demo.");
+
+// =========================================
+// PUSAT NOTIFIKASI ADMIN - DATA DEMO
+// =========================================
+
+const adminNotifications = [
+  {
+    id: 1,
+    type: "seller",
+    avatar: "KB",
+    title: "Pendaftaran Penjual Baru",
+    message: "Toko Kopi Budi sedang menunggu persetujuan admin.",
+    time: "Baru saja",
+    read: false
+  },
+  {
+    id: 2,
+    type: "order",
+    avatar: "RA",
+    title: "Pesanan Baru",
+    message: "Rina Amelia melakukan pemesanan produk marketplace.",
+    time: "10 menit lalu",
+    read: false
+  },
+  {
+    id: 3,
+    type: "product",
+    avatar: "KR",
+    title: "Produk Baru Ditambahkan",
+    message: "Keripik Rahma menambahkan produk baru.",
+    time: "30 menit lalu",
+    read: false
+  }
+];
+
+const notificationButton =
+  document.getElementById("notificationButton");
+
+const notificationPanel =
+  document.getElementById("notificationPanel");
+
+const notificationCount =
+  document.getElementById("notificationCount");
+
+const notificationList =
+  document.getElementById("notificationList");
+
+const markAllReadButton =
+  document.getElementById("markAllRead");
+
+const notificationTabs =
+  document.querySelectorAll(".notification-tab");
+
+const notificationTabCount =
+  document.getElementById("notificationTabCount");
+
+let activeNotificationFilter = "all";
+
+// =========================================
+// MENGHITUNG NOTIFIKASI BELUM DIBACA
+// =========================================
+
+function updateNotificationCount() {
+  const unreadCount = adminNotifications.filter(
+    notification => !notification.read
+  ).length;
+
+  if (notificationCount) {
+    notificationCount.textContent =
+      unreadCount > 0 ? unreadCount : "";
+
+    notificationCount.classList.toggle(
+      "zero",
+      unreadCount === 0
+    );
+  }
+
+  if (notificationTabCount) {
+    notificationTabCount.textContent = unreadCount;
+    notificationTabCount.style.display =
+      unreadCount > 0 ? "inline-flex" : "none";
+  }
+}
+
+// =========================================
+// MENAMPILKAN NOTIFIKASI
+// =========================================
+
+function renderNotifications() {
+  if (!notificationList) return;
+
+  const filteredNotifications =
+    activeNotificationFilter === "all"
+      ? adminNotifications
+      : adminNotifications.filter(
+          notification =>
+            notification.type === activeNotificationFilter
+        );
+
+  notificationList.innerHTML = "";
+
+  if (filteredNotifications.length === 0) {
+    notificationList.innerHTML = `
+      <div class="notification-empty">
+        Belum ada notifikasi pada kategori ini.
+      </div>
+    `;
+
+    updateNotificationCount();
+    return;
+  }
+
+  filteredNotifications.forEach(notification => {
+    const item = document.createElement("div");
+
+    item.className =
+      `notification-item ${notification.read ? "" : "unread"}`;
+
+    item.dataset.notificationId = notification.id;
+
+    item.innerHTML = `
+      <div class="notification-avatar ${notification.type}">
+        ${escapeHTML(notification.avatar)}
+      </div>
+
+      <div class="notification-content">
+        <strong>${escapeHTML(notification.title)}</strong>
+        <p>${escapeHTML(notification.message)}</p>
+        <small>${escapeHTML(notification.time)}</small>
+      </div>
+
+      ${
+        notification.read
+          ? ""
+          : '<span class="notification-unread-dot"></span>'
+      }
+    `;
+
+    notificationList.appendChild(item);
+  });
+
+  updateNotificationCount();
+}
+
+// =========================================
+// FILTER TAB NOTIFIKASI
+// =========================================
+
+notificationTabs.forEach(tab => {
+  tab.addEventListener("click", function () {
+    activeNotificationFilter = this.dataset.filter;
+
+    notificationTabs.forEach(item => {
+      item.classList.remove("active");
+    });
+
+    this.classList.add("active");
+
+    renderNotifications();
+  });
+});
+
+// =========================================
+// BUKA DAN TUTUP PANEL
+// =========================================
+
+if (notificationButton && notificationPanel) {
+  notificationButton.addEventListener("click", function (event) {
+    event.stopPropagation();
+
+    notificationPanel.hidden = !notificationPanel.hidden;
+
+    notificationButton.setAttribute(
+      "aria-expanded",
+      String(!notificationPanel.hidden)
+    );
+  });
+
+  notificationPanel.addEventListener("click", function (event) {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("click", function () {
+    notificationPanel.hidden = true;
+
+    notificationButton.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+}
+
+// =========================================
+// MENANDAI SATU NOTIFIKASI SUDAH DIBACA
+// =========================================
+
+if (notificationList) {
+  notificationList.addEventListener("click", function (event) {
+    const item = event.target.closest(".notification-item");
+
+    if (!item) return;
+
+    const id = Number(item.dataset.notificationId);
+
+    const selectedNotification = adminNotifications.find(
+      notification => notification.id === id
+    );
+
+    if (selectedNotification) {
+      selectedNotification.read = true;
+      renderNotifications();
+    }
+  });
+}
+
+// =========================================
+// MENANDAI SEMUA NOTIFIKASI SUDAH DIBACA
+// =========================================
+
+if (markAllReadButton) {
+  markAllReadButton.addEventListener("click", function () {
+    adminNotifications.forEach(notification => {
+      notification.read = true;
+    });
+
+    renderNotifications();
+
+    if (typeof showToast === "function") {
+      showToast("Semua notifikasi sudah dibaca.");
+    }
+  });
+}
+
+// =========================================
+// TAMPILKAN NOTIFIKASI PERTAMA KALI
+// =========================================
+
+renderNotifications();
