@@ -997,6 +997,176 @@ function renderApprovalTable(data) {
   );
 }
 
+
+// ==================================================
+// DATA PEMBELI DAN PENJUAL
+// TAHAP 2 - MANAJEMEN PENGGUNA
+// ==================================================
+
+function showUserModal(role, id, mode = "detail") {
+  const isBuyer = role === "buyer";
+
+  const user = isBuyer
+    ? buyers.find(item => item.id === id)
+    : sellers.find(item => item.id === id);
+
+  if (!user) return;
+
+  const accountStatus = isBuyer
+    ? user.status
+    : (user.accountStatus || "Aktif");
+
+  const title = mode === "edit"
+    ? "Edit Informasi Pengguna"
+    : "Detail Pengguna";
+
+  const sellerFields = !isBuyer ? `
+    <div class="user-detail-item">
+      <span>Nama Toko</span>
+      <strong>${escapeHTML(user.store)}</strong>
+    </div>
+    <div class="user-detail-item">
+      <span>Kategori</span>
+      <strong>${escapeHTML(user.category)}</strong>
+    </div>
+    <div class="user-detail-item">
+      <span>Status Pendaftaran</span>
+      <strong>${escapeHTML(user.status)}</strong>
+    </div>
+  ` : "";
+
+  const content = mode === "edit" ? `
+    <form id="editUserForm" data-role="${role}" data-id="${id}">
+
+      <div class="user-form-field">
+        <label>Nama Lengkap</label>
+        <input id="editUserName"
+          value="${escapeHTML(user.name)}" required>
+      </div>
+
+      <div class="user-form-field">
+        <label>Email</label>
+        <input id="editUserEmail" type="email"
+          value="${escapeHTML(user.email)}" required>
+      </div>
+
+      <div class="user-form-field">
+        <label>Nomor Telepon</label>
+        <input id="editUserPhone"
+          value="${escapeHTML(user.phone)}" required>
+      </div>
+
+      ${!isBuyer ? `
+        <div class="user-form-field">
+          <label>Nama Toko</label>
+          <input id="editUserStore"
+            value="${escapeHTML(user.store)}" required>
+        </div>
+
+        <div class="user-form-field">
+          <label>Kategori Toko</label>
+          <select id="editUserCategory">
+            ${["Makanan", "Minuman", "Kerajinan", "Fashion", "Lainnya"]
+              .map(category => `
+                <option value="${category}"
+                  ${user.category === category ? "selected" : ""}>
+                  ${category}
+                </option>
+              `).join("")}
+          </select>
+        </div>
+      ` : ""}
+
+      <div class="user-modal-actions">
+        <button type="button" class="btn btn-light"
+          data-action="close-user-modal">
+          Batal
+        </button>
+
+        <button type="submit" class="btn btn-primary">
+          Simpan Perubahan
+        </button>
+      </div>
+
+    </form>
+  ` : `
+    <div class="user-detail-grid">
+
+      <div class="user-detail-item">
+        <span>Nama Lengkap</span>
+        <strong>${escapeHTML(user.name)}</strong>
+      </div>
+
+      <div class="user-detail-item">
+        <span>Email</span>
+        <strong>${escapeHTML(user.email)}</strong>
+      </div>
+
+      <div class="user-detail-item">
+        <span>Nomor Telepon</span>
+        <strong>${escapeHTML(user.phone)}</strong>
+      </div>
+
+      <div class="user-detail-item">
+        <span>Tanggal Daftar</span>
+        <strong>${escapeHTML(user.date)}</strong>
+      </div>
+
+      ${sellerFields}
+
+      <div class="user-detail-item">
+        <span>Status Akun</span>
+        <strong>${escapeHTML(accountStatus)}</strong>
+      </div>
+
+    </div>
+
+    <div class="user-modal-actions">
+      <button class="btn btn-light"
+        data-action="close-user-modal">
+        Tutup
+      </button>
+
+      <button class="btn btn-primary"
+        data-action="edit-user"
+        data-role="${role}"
+        data-id="${id}">
+        Edit Pengguna
+      </button>
+    </div>
+  `;
+
+  const oldModal = document.getElementById("userModal");
+  if (oldModal) oldModal.remove();
+
+  pageContent.insertAdjacentHTML("beforeend", `
+    <div class="user-modal-overlay" id="userModal">
+
+      <div class="user-modal">
+
+        <div class="user-modal-header">
+          <div>
+            <h2>${title}</h2>
+            <p>Informasi akun ED Management</p>
+          </div>
+
+          <button class="user-modal-close"
+            data-action="close-user-modal">
+            &times;
+          </button>
+        </div>
+
+        <div class="user-modal-body">
+          ${content}
+        </div>
+
+      </div>
+
+    </div>
+  `);
+}
+
+
 // ==================================================
 // DATA PEMBELI
 // ==================================================
@@ -1038,6 +1208,7 @@ function renderBuyers() {
   );
 }
 
+
 function renderBuyerTable(data) {
   return renderTable(
     [
@@ -1045,17 +1216,51 @@ function renderBuyerTable(data) {
       "Email",
       "Nomor Telepon",
       "Tanggal Daftar",
-      "Status"
+      "Status",
+      "Aksi"
     ],
+
     data.map(buyer => [
       escapeHTML(buyer.name),
       escapeHTML(buyer.email),
       escapeHTML(buyer.phone),
       escapeHTML(buyer.date),
-      statusBadge(buyer.status)
+      statusBadge(buyer.status),
+
+      `
+        <div class="user-action-buttons">
+
+          <button class="btn btn-light"
+            data-action="view-user"
+            data-role="buyer"
+            data-id="${buyer.id}">
+            Detail
+          </button>
+
+          <button class="btn btn-primary"
+            data-action="edit-user"
+            data-role="buyer"
+            data-id="${buyer.id}">
+            Edit
+          </button>
+
+          <button class="btn ${
+            buyer.status === "Aktif"
+              ? "btn-danger"
+              : "btn-primary"
+          }"
+            data-action="toggle-user"
+            data-role="buyer"
+            data-id="${buyer.id}">
+            ${buyer.status === "Aktif" ? "Nonaktifkan" : "Aktifkan"}
+          </button>
+
+        </div>
+      `
     ])
   );
 }
+
 
 // ==================================================
 // DATA PENJUAL
@@ -1098,6 +1303,7 @@ function renderSellers() {
   );
 }
 
+
 function renderSellerTable(data) {
   return renderTable(
     [
@@ -1105,17 +1311,54 @@ function renderSellerTable(data) {
       "Email",
       "Nama Toko",
       "Kategori",
-      "Tanggal Daftar",
-      "Status"
+      "Pendaftaran",
+      "Status Akun",
+      "Aksi"
     ],
-    data.map(seller => [
-      escapeHTML(seller.name),
-      escapeHTML(seller.email),
-      escapeHTML(seller.store),
-      escapeHTML(seller.category),
-      escapeHTML(seller.date),
-      statusBadge(seller.status)
-    ])
+
+    data.map(seller => {
+      const accountStatus = seller.accountStatus || "Aktif";
+
+      return [
+        escapeHTML(seller.name),
+        escapeHTML(seller.email),
+        escapeHTML(seller.store),
+        escapeHTML(seller.category),
+        statusBadge(seller.status),
+        statusBadge(accountStatus),
+
+        `
+          <div class="user-action-buttons">
+
+            <button class="btn btn-light"
+              data-action="view-user"
+              data-role="seller"
+              data-id="${seller.id}">
+              Detail
+            </button>
+
+            <button class="btn btn-primary"
+              data-action="edit-user"
+              data-role="seller"
+              data-id="${seller.id}">
+              Edit
+            </button>
+
+            <button class="btn ${
+              accountStatus === "Aktif"
+                ? "btn-danger"
+                : "btn-primary"
+            }"
+              data-action="toggle-user"
+              data-role="seller"
+              data-id="${seller.id}">
+              ${accountStatus === "Aktif" ? "Nonaktifkan" : "Aktifkan"}
+            </button>
+
+          </div>
+        `
+      ];
+    })
   );
 }
 
@@ -1436,6 +1679,79 @@ document.addEventListener("click", event => {
   const action = actionButton.dataset.action;
   const id = Number(actionButton.dataset.id);
 
+  
+  // DETAIL PENGGUNA
+  if (action === "view-user") {
+    showUserModal(
+      actionButton.dataset.role,
+      id,
+      "detail"
+    );
+    return;
+  }
+
+  // EDIT PENGGUNA
+  if (action === "edit-user") {
+    showUserModal(
+      actionButton.dataset.role,
+      id,
+      "edit"
+    );
+    return;
+  }
+
+  // TUTUP MODAL
+  if (action === "close-user-modal") {
+    document.getElementById("userModal")?.remove();
+    return;
+  }
+
+  // AKTIF / NONAKTIF PENGGUNA
+  if (action === "toggle-user") {
+    const role = actionButton.dataset.role;
+    const isBuyer = role === "buyer";
+
+    const user = isBuyer
+      ? buyers.find(item => item.id === id)
+      : sellers.find(item => item.id === id);
+
+    if (!user) return;
+
+    const currentStatus = isBuyer
+      ? user.status
+      : (user.accountStatus || "Aktif");
+
+    const newStatus = currentStatus === "Aktif"
+      ? "Nonaktif"
+      : "Aktif";
+
+    const confirmed = confirm(
+      `Apakah kamu yakin ingin mengubah status akun ${user.name} menjadi ${newStatus}?`
+    );
+
+    if (!confirmed) return;
+
+    if (isBuyer) {
+      user.status = newStatus;
+    } else {
+      user.accountStatus = newStatus;
+    }
+
+    addActivity(
+      `Status akun ${user.name} diubah`,
+      `Status sekarang: ${newStatus}`
+    );
+
+    renderPage(currentPage);
+
+    showToast(
+      `Status akun ${user.name} berhasil diubah menjadi ${newStatus}.`
+    );
+
+    return;
+  }
+
+
   // SETUJUI PENJUAL
   if (action === "approve") {
     const seller = sellers.find(item => item.id === id);
@@ -1511,6 +1827,54 @@ document.addEventListener("click", event => {
   if (action === "export-report") {
     exportReport();
   }
+});
+
+document.addEventListener("submit", event => {
+  if (event.target.id !== "editUserForm") return;
+
+  event.preventDefault();
+
+  const form = event.target;
+  const role = form.dataset.role;
+  const id = Number(form.dataset.id);
+
+  const isBuyer = role === "buyer";
+
+  const user = isBuyer
+    ? buyers.find(item => item.id === id)
+    : sellers.find(item => item.id === id);
+
+  if (!user) return;
+
+  const name = document.getElementById("editUserName").value.trim();
+  const email = document.getElementById("editUserEmail").value.trim();
+  const phone = document.getElementById("editUserPhone").value.trim();
+
+  if (!name || !email || !phone) {
+    showToast("Semua data wajib diisi.");
+    return;
+  }
+
+  user.name = name;
+  user.email = email;
+  user.phone = phone;
+
+  if (!isBuyer) {
+    user.store = document.getElementById("editUserStore").value.trim();
+
+    user.category = document.getElementById("editUserCategory").value;
+  }
+
+  addActivity(
+    `Data ${isBuyer ? "pembeli" : "penjual"} ${name} diperbarui`,
+    "Informasi akun berhasil diperbarui."
+  );
+
+  document.getElementById("userModal")?.remove();
+
+  renderPage(currentPage);
+
+  showToast("Informasi pengguna berhasil diperbarui.");
 });
 
 // ==================================================
