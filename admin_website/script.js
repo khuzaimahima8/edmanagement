@@ -1362,19 +1362,48 @@ function renderSellerTable(data) {
   );
 }
 
+
 // ==================================================
-// DATA PRODUK
+// DATA PRODUK - TAHAP 2B
 // ==================================================
 
 function renderProducts() {
+  const totalStok = products.reduce(
+    (total, product) => total + Number(product.stock),
+    0
+  );
+
+  const produkNonaktif = products.filter(
+    product => product.status === "Nonaktif"
+  ).length;
+
   pageContent.innerHTML = `
     <section class="panel">
 
       <div class="panel-header">
         <div>
           <h2>Daftar Produk</h2>
-          <p>Total ${products.length} produk contoh.</p>
+          <p>Kelola informasi, harga, dan stok produk marketplace.</p>
         </div>
+      </div>
+
+      <div class="product-summary">
+
+        <div class="product-summary-card">
+          <span>Total Produk</span>
+          <strong>${products.length}</strong>
+        </div>
+
+        <div class="product-summary-card">
+          <span>Total Stok</span>
+          <strong>${totalStok}</strong>
+        </div>
+
+        <div class="product-summary-card">
+          <span>Produk Nonaktif</span>
+          <strong>${produkNonaktif}</strong>
+        </div>
+
       </div>
 
       ${searchBox("Cari nama produk atau penjual...")}
@@ -1403,6 +1432,11 @@ function renderProducts() {
   );
 }
 
+
+// ==================================================
+// TABEL PRODUK
+// ==================================================
+
 function renderProductTable(data) {
   return renderTable(
     [
@@ -1414,33 +1448,247 @@ function renderProductTable(data) {
       "Status",
       "Aksi"
     ],
+
     data.map(product => [
       escapeHTML(product.name),
       escapeHTML(product.seller),
       escapeHTML(product.category),
       rupiah(product.price),
-      product.stock,
-      statusBadge(product.status),
+
       `
-        <button
-          class="btn ${
-            product.status === "Aktif"
-              ? "btn-danger"
-              : "btn-primary"
-          }"
-          data-action="toggle-product"
-          data-id="${product.id}"
-        >
-          ${
-            product.status === "Aktif"
-              ? "Nonaktifkan"
-              : "Aktifkan"
-          }
-        </button>
+        <span class="${
+          Number(product.stock) <= 5
+            ? "stock-low"
+            : "stock-normal"
+        }">
+          ${Number(product.stock)} unit
+        </span>
+      `,
+
+      statusBadge(product.status),
+
+      `
+        <div class="product-action-buttons">
+
+          <button
+            class="btn btn-light"
+            data-action="view-product"
+            data-id="${product.id}">
+            Detail
+          </button>
+
+          <button
+            class="btn btn-primary"
+            data-action="edit-product"
+            data-id="${product.id}">
+            Edit
+          </button>
+
+          <button
+            class="btn ${
+              product.status === "Aktif"
+                ? "btn-danger"
+                : "btn-primary"
+            }"
+            data-action="toggle-product"
+            data-id="${product.id}">
+
+            ${
+              product.status === "Aktif"
+                ? "Nonaktifkan"
+                : "Aktifkan"
+            }
+
+          </button>
+
+        </div>
       `
     ])
   );
 }
+
+
+// ==================================================
+// MODAL DETAIL DAN EDIT PRODUK
+// ==================================================
+
+function showProductModal(id, mode = "detail") {
+  const product = products.find(
+    item => item.id === id
+  );
+
+  if (!product) return;
+
+  const isEdit = mode === "edit";
+
+  document.getElementById("productModal")?.remove();
+
+  const detailContent = `
+    <div class="product-detail-grid">
+
+      <div class="product-detail-item">
+        <span>Nama Produk</span>
+        <strong>${escapeHTML(product.name)}</strong>
+      </div>
+
+      <div class="product-detail-item">
+        <span>Nama Penjual</span>
+        <strong>${escapeHTML(product.seller)}</strong>
+      </div>
+
+      <div class="product-detail-item">
+        <span>Kategori</span>
+        <strong>${escapeHTML(product.category)}</strong>
+      </div>
+
+      <div class="product-detail-item">
+        <span>Harga Produk</span>
+        <strong>${rupiah(product.price)}</strong>
+      </div>
+
+      <div class="product-detail-item">
+        <span>Stok Tersedia</span>
+        <strong>${Number(product.stock)} unit</strong>
+      </div>
+
+      <div class="product-detail-item">
+        <span>Status Produk</span>
+        <strong>${escapeHTML(product.status)}</strong>
+      </div>
+
+    </div>
+
+    <div class="product-modal-actions">
+
+      <button
+        class="btn btn-light"
+        data-action="close-product-modal">
+        Tutup
+      </button>
+
+      <button
+        class="btn btn-primary"
+        data-action="edit-product"
+        data-id="${product.id}">
+        Edit Produk
+      </button>
+
+    </div>
+  `;
+
+  const editContent = `
+    <form id="editProductForm" data-id="${product.id}">
+
+      <div class="product-form-field">
+        <label>Nama Produk</label>
+        <input
+          type="text"
+          id="editProductName"
+          value="${escapeHTML(product.name)}"
+          required>
+      </div>
+
+      <div class="product-form-field">
+        <label>Nama Penjual</label>
+        <input
+          type="text"
+          id="editProductSeller"
+          value="${escapeHTML(product.seller)}"
+          required>
+      </div>
+
+      <div class="product-form-field">
+        <label>Kategori Produk</label>
+
+        <select id="editProductCategory">
+          ${[
+            "Makanan",
+            "Minuman",
+            "Kerajinan",
+            "Fashion",
+            "Lainnya"
+          ].map(category => `
+            <option
+              value="${category}"
+              ${product.category === category ? "selected" : ""}>
+              ${category}
+            </option>
+          `).join("")}
+        </select>
+      </div>
+
+      <div class="product-form-field">
+        <label>Harga Produk (Rp)</label>
+        <input
+          type="number"
+          id="editProductPrice"
+          min="0"
+          step="1"
+          value="${Number(product.price)}"
+          required>
+      </div>
+
+      <div class="product-form-field">
+        <label>Stok Produk (Unit)</label>
+        <input
+          type="number"
+          id="editProductStock"
+          min="0"
+          step="1"
+          value="${Number(product.stock)}"
+          required>
+      </div>
+
+      <div class="product-modal-actions">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          data-action="close-product-modal">
+          Batal
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-primary">
+          Simpan Perubahan
+        </button>
+
+      </div>
+
+    </form>
+  `;
+
+  pageContent.insertAdjacentHTML("beforeend", `
+    <div class="product-modal-overlay" id="productModal">
+
+      <div class="product-modal">
+
+        <div class="product-modal-header">
+
+          <div>
+            <h2>${isEdit ? "Edit Produk" : "Detail Produk"}</h2>
+            <p>Manajemen produk ED Management</p>
+          </div>
+
+          <button
+            class="product-modal-close"
+            data-action="close-product-modal">
+            &times;
+          </button>
+
+        </div>
+
+        <div class="product-modal-body">
+          ${isEdit ? editContent : detailContent}
+        </div>
+
+      </div>
+
+    </div>
+  `);
+}
+
 // ==================================================
 // DATA PESANAN
 // ==================================================
@@ -1800,6 +2048,26 @@ document.addEventListener("click", event => {
     );
   }
 
+
+  // DETAIL PRODUK
+  if (action === "view-product") {
+    showProductModal(id, "detail");
+    return;
+  }
+
+  // EDIT PRODUK
+  if (action === "edit-product") {
+    showProductModal(id, "edit");
+    return;
+  }
+
+  // TUTUP MODAL PRODUK
+  if (action === "close-product-modal") {
+    document.getElementById("productModal")?.remove();
+    return;
+  }
+
+
   // AKTIF / NONAKTIF PRODUK
   if (action === "toggle-product") {
     const product = products.find(item => item.id === id);
@@ -1875,6 +2143,65 @@ document.addEventListener("submit", event => {
   renderPage(currentPage);
 
   showToast("Informasi pengguna berhasil diperbarui.");
+});
+
+
+// ==================================================
+// SIMPAN PERUBAHAN PRODUK
+// ==================================================
+
+document.addEventListener("submit", event => {
+  if (event.target.id !== "editProductForm") return;
+
+  event.preventDefault();
+
+  const id = Number(event.target.dataset.id);
+
+  const product = products.find(
+    item => item.id === id
+  );
+
+  if (!product) return;
+
+  const name = document.getElementById("editProductName").value.trim();
+
+  const seller = document.getElementById("editProductSeller").value.trim();
+
+  const category = document.getElementById("editProductCategory").value;
+
+  const price = Number(document.getElementById("editProductPrice").value);
+
+  const stock = Number(document.getElementById("editProductStock").value);
+
+  if (
+    !name ||
+    !seller ||
+    !category ||
+    !Number.isSafeInteger(price) ||
+    !Number.isSafeInteger(stock) ||
+    price < 0 ||
+    stock < 0
+  ) {
+    showToast("Periksa kembali data produk.");
+    return;
+  }
+
+  product.name = name;
+  product.seller = seller;
+  product.category = category;
+  product.price = price;
+  product.stock = stock;
+
+  addActivity(
+    `Produk ${name} diperbarui`,
+    `Harga: ${rupiah(price)} • Stok: ${stock} unit`
+  );
+
+  document.getElementById("productModal")?.remove();
+
+  renderPage("products");
+
+  showToast("Data produk berhasil diperbarui.");
 });
 
 // ==================================================
