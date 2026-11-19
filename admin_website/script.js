@@ -135,28 +135,50 @@ let orders = [
   {
     id: "ORD-001",
     buyer: "Rina Amelia",
+    buyerEmail: "rina@gmail.com",
+    buyerPhone: "081234567801",
+    address: "Bangil, Pasuruan, Jawa Timur",
+    seller: "Ayu Craft",
     product: "Tas Rajut",
+    quantity: 1,
+    price: 17000,
     total: 17000,
+    paymentMethod: "Transfer Bank",
     status: "Diproses",
     date: "25 Oktober 2026"
   },
   {
     id: "ORD-002",
     buyer: "Doni Pratama",
+    buyerEmail: "doni@gmail.com",
+    buyerPhone: "081234567802",
+    address: "Purwosari, Pasuruan, Jawa Timur",
+    seller: "Kopi Budi",
     product: "Kopi Cendana",
+    quantity: 2,
+    price: 25000,
     total: 50000,
+    paymentMethod: "COD",
     status: "Selesai",
     date: "24 Oktober 2026"
   },
   {
     id: "ORD-003",
     buyer: "Nadia Putri",
+    buyerEmail: "nadia@gmail.com",
+    buyerPhone: "081234567803",
+    address: "Sukorejo, Pasuruan, Jawa Timur",
+    seller: "Keripik Rahma",
     product: "Keripik Pisang",
+    quantity: 2,
+    price: 10000,
     total: 20000,
+    paymentMethod: "Transfer Bank",
     status: "Menunggu",
     date: "25 Oktober 2026"
   }
 ];
+
 
 // Riwayat aktivitas dashboard
 let activities = [
@@ -1689,22 +1711,71 @@ function showProductModal(id, mode = "detail") {
   `);
 }
 
-// ==================================================
-// DATA PESANAN
-// ==================================================
+
+ // ==================================================
+ // DATA PESANAN - TAHAP 2C
+ // ==================================================
+
+const orderStatuses = [
+  "Menunggu",
+  "Diproses",
+  "Dikirim",
+  "Selesai",
+  "Dibatalkan"
+];
 
 function renderOrders() {
+  const waiting = orders.filter(o => o.status === "Menunggu").length;
+  const processing = orders.filter(o => o.status === "Diproses").length;
+  const shipped = orders.filter(o => o.status === "Dikirim").length;
+  const completed = orders.filter(o => o.status === "Selesai").length;
+
   pageContent.innerHTML = `
     <section class="panel">
 
       <div class="panel-header">
         <div>
           <h2>Daftar Pesanan</h2>
-          <p>Total ${orders.length} pesanan contoh.</p>
+          <p>Kelola dan pantau seluruh transaksi marketplace.</p>
         </div>
       </div>
 
-      ${searchBox("Cari nomor pesanan atau nama pembeli...")}
+      <div class="order-summary">
+
+        <div class="order-summary-card">
+          <span>Menunggu</span>
+          <strong>${waiting}</strong>
+        </div>
+
+        <div class="order-summary-card">
+          <span>Diproses</span>
+          <strong>${processing}</strong>
+        </div>
+
+        <div class="order-summary-card">
+          <span>Dikirim</span>
+          <strong>${shipped}</strong>
+        </div>
+
+        <div class="order-summary-card">
+          <span>Selesai</span>
+          <strong>${completed}</strong>
+        </div>
+
+      </div>
+
+      <div class="order-toolbar">
+
+        ${searchBox("Cari nomor pesanan, pembeli, atau produk...")}
+
+        <select id="orderStatusFilter" class="order-filter">
+          <option value="Semua">Semua Status</option>
+          ${orderStatuses.map(status => `
+            <option value="${status}">${status}</option>
+          `).join("")}
+        </select>
+
+      </div>
 
       <div id="tableResult">
         ${renderOrderTable(orders)}
@@ -1713,24 +1784,523 @@ function renderOrders() {
     </section>
   `;
 
-  document.getElementById("tableSearch").addEventListener(
-    "input",
-    event => {
-      const keyword = event.target.value.toLowerCase();
+  const searchInput = document.getElementById("tableSearch");
+  const statusFilter = document.getElementById("orderStatusFilter");
 
-      const filtered = orders.filter(order =>
+  function applyOrderFilter() {
+    const keyword = searchInput.value.toLowerCase().trim();
+    const selectedStatus = statusFilter.value;
+
+    const filtered = orders.filter(order => {
+      const matchKeyword =
         order.id.toLowerCase().includes(keyword) ||
         order.buyer.toLowerCase().includes(keyword) ||
-        order.product.toLowerCase().includes(keyword)
-      );
+        order.product.toLowerCase().includes(keyword) ||
+        order.seller.toLowerCase().includes(keyword);
 
-      document.getElementById("tableResult").innerHTML =
-        renderOrderTable(filtered);
-    }
+      const matchStatus =
+        selectedStatus === "Semua" ||
+        order.status === selectedStatus;
+
+      return matchKeyword && matchStatus;
+    });
+
+    document.getElementById("tableResult").innerHTML =
+      renderOrderTable(filtered);
+  }
+
+  searchInput.addEventListener("input", applyOrderFilter);
+  statusFilter.addEventListener("change", applyOrderFilter);
+}
+
+
+// ==================================================
+// TABEL PESANAN
+// ==================================================
+
+function renderOrderTable(data) {
+  if (data.length === 0) {
+    return emptyMessage("Pesanan tidak ditemukan.");
+  }
+
+  return renderTable(
+    [
+      "Nomor Pesanan",
+      "Pembeli",
+      "Produk",
+      "Total",
+      "Tanggal",
+      "Status",
+      "Aksi"
+    ],
+
+    data.map(order => [
+      `<strong>${escapeHTML(order.id)}</strong>`,
+      escapeHTML(order.buyer),
+      escapeHTML(order.product),
+      rupiah(order.total),
+      escapeHTML(order.date),
+      statusBadge(order.status),
+
+      `
+        <button
+          class="btn btn-primary"
+          data-action="view-order"
+          data-id="${escapeHTML(order.id)}">
+          Detail
+        </button>
+      `
+    ])
   );
 }
 
-function renderOrderTable(data) {
+
+// ==================================================
+// MODAL DETAIL PESANAN
+// ==================================================
+
+function showOrderDetail(orderId) {
+  const order = orders.find(item => item.id === orderId);
+
+  if (!order) return;
+
+  document.getElementById("orderModal")?.remove();
+
+  const quantity = Number(order.quantity || 1);
+  const price = Number(order.price || order.total);
+  const subtotal = price * quantity;
+
+  pageContent.insertAdjacentHTML("beforeend", `
+    <div class="order-modal-overlay" id="orderModal">
+
+      <div class="order-modal">
+
+        <div class="order-modal-header">
+          <div>
+            <h2>Detail Pesanan</h2>
+            <p>Nomor Pesanan: ${escapeHTML(order.id)}</p>
+          </div>
+
+          <button
+            class="order-modal-close"
+            data-action="close-order-modal">
+            &times;
+          </button>
+        </div>
+
+        <div class="order-modal-body">
+
+          <div class="order-detail-section">
+            <h3>Informasi Pembeli</h3>
+
+            <div class="order-detail-grid">
+
+              <div class="order-detail-item">
+                <span>Nama Pembeli</span>
+                <strong>${escapeHTML(order.buyer)}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Email</span>
+                <strong>${escapeHTML(order.buyerEmail || "-")}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Nomor Telepon</span>
+                <strong>${escapeHTML(order.buyerPhone || "-")}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Alamat Pengiriman</span>
+                <strong>${escapeHTML(order.address || "-")}</strong>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="order-detail-section">
+            <h3>Informasi Produk</h3>
+
+            <div class="order-detail-grid">
+
+              <div class="order-detail-item">
+                <span>Nama Produk</span>
+                <strong>${escapeHTML(order.product)}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Penjual</span>
+                <strong>${escapeHTML(order.seller || "-")}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Harga Satuan</span>
+                <strong>${rupiah(price)}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Jumlah</span>
+                <strong>${quantity} unit</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Subtotal Produk</span>
+                <strong>${rupiah(subtotal)}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Total Pembayaran</span>
+                <strong>${rupiah(order.total)}</strong>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="order-detail-section">
+            <h3>Informasi Transaksi</h3>
+
+            <div class="order-detail-grid">
+
+              <div class="order-detail-item">
+                <span>Tanggal Pesanan</span>
+                <strong>${escapeHTML(order.date)}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Metode Pembayaran</span>
+                <strong>${escapeHTML(order.paymentMethod || "-")}</strong>
+              </div>
+
+              <div class="order-detail-item">
+                <span>Status Sekarang</span>
+                <strong>${statusBadge(order.status)}</strong>
+              </div>
+
+            </div>
+          </div>
+
+          <form id="orderStatusForm" data-id="${escapeHTML(order.id)}">
+
+            <div class="order-form-field">
+              <label for="newOrderStatus">Ubah Status Pesanan</label>
+
+              <select id="newOrderStatus">
+                ${orderStatuses.map(status => `
+                  <option
+                    value="${status}"
+                    ${order.status === status ? "selected" : ""}>
+                    ${status}
+                  </option>
+                `).join("")}
+              </select>
+            </div>
+
+            <div class="order-modal-actions">
+
+              <button
+                type="button"
+                class="btn btn-light"
+                data-action="close-order-modal">
+                Tutup
+              </button>
+
+              <button type="submit" class="btn btn-primary">
+                Simpan Status
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+
+// ==================================================
+// LAPORAN PENJUALAN - TAHAP 2D
+// ==================================================
+
+function renderReports() {
+
+  const completedOrders = orders.filter(
+    order => order.status === "Selesai"
+  );
+
+  const pendingOrders = orders.filter(
+    order => order.status === "Menunggu"
+  );
+
+  const processingOrders = orders.filter(
+    order => order.status === "Diproses"
+  );
+
+  const shippedOrders = orders.filter(
+    order => order.status === "Dikirim"
+  );
+
+  const canceledOrders = orders.filter(
+    order => order.status === "Dibatalkan"
+  );
+
+  const totalRevenue = completedOrders.reduce(
+    (sum, order) => sum + Number(order.total || 0),
+    0
+  );
+
+  const averageOrder = completedOrders.length
+    ? totalRevenue / completedOrders.length
+    : 0;
+
+  // REKAP PENJUALAN BERDASARKAN PRODUK
+  const productSales = {};
+
+  completedOrders.forEach(order => {
+    const productName = order.product || "Produk";
+
+    if (!productSales[productName]) {
+      productSales[productName] = 0;
+    }
+
+    productSales[productName] += Number(order.total || 0);
+  });
+
+  const sortedProductSales = Object.entries(productSales)
+    .sort((a, b) => b[1] - a[1]);
+
+  const maxProductRevenue = Math.max(
+    ...sortedProductSales.map(item => item[1]),
+    1
+  );
+
+  // GRAFIK PENJUALAN VERTIKAL
+  const productChart = sortedProductSales.length
+    ? `
+      <div class="vertical-chart">
+
+        ${sortedProductSales.map(([name, revenue]) => {
+          const percentage = Math.max(
+            (revenue / maxProductRevenue) * 100,
+            4
+          );
+
+          return `
+            <div class="vertical-chart-item">
+
+              <div class="vertical-chart-value">
+                ${rupiah(revenue)}
+              </div>
+
+              <div class="vertical-chart-column">
+                <div
+                  class="vertical-chart-bar"
+                  style="height: ${percentage}%">
+                </div>
+              </div>
+
+              <div class="vertical-chart-label">
+                ${escapeHTML(name)}
+              </div>
+
+            </div>
+          `;
+        }).join("")}
+
+      </div>
+    `
+    : emptyMessage("Belum ada transaksi yang selesai.");
+
+
+  // TAMPILAN HALAMAN
+  pageContent.innerHTML = `
+
+    <!-- RINGKASAN PENJUALAN -->
+
+    <div class="stats-grid">
+
+      ${statCard(
+        "Total Omzet",
+        rupiah(totalRevenue),
+        "Rp",
+        "Dari transaksi yang selesai"
+      )}
+
+      ${statCard(
+        "Transaksi Selesai",
+        completedOrders.length,
+        "✓",
+        "Pesanan berhasil diselesaikan"
+      )}
+
+      ${statCard(
+        "Pesanan Menunggu",
+        pendingOrders.length,
+        "◷",
+        "Menunggu konfirmasi"
+      )}
+
+      ${statCard(
+        "Pesanan Dibatalkan",
+        canceledOrders.length,
+        "×",
+        "Total pesanan dibatalkan"
+      )}
+
+    </div>
+
+    <!-- RINGKASAN TAMBAHAN -->
+
+    <div class="report-extra-grid">
+
+      <div class="report-extra-card">
+        <span>Total Pesanan</span>
+        <strong>${orders.length}</strong>
+      </div>
+
+      <div class="report-extra-card">
+        <span>Pesanan Diproses</span>
+        <strong>${processingOrders.length}</strong>
+      </div>
+
+      <div class="report-extra-card">
+        <span>Pesanan Dikirim</span>
+        <strong>${shippedOrders.length}</strong>
+      </div>
+
+      <div class="report-extra-card">
+        <span>Rata-rata Transaksi Selesai</span>
+        <strong>${rupiah(averageOrder)}</strong>
+      </div>
+
+    </div>
+
+    <!-- GRAFIK PENJUALAN -->
+
+    <section class="panel report-chart-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Penjualan Berdasarkan Produk</h2>
+          <p>
+            Perbandingan omzet setiap produk dari pesanan selesai.
+          </p>
+        </div>
+      </div>
+
+      ${productChart}
+
+    </section>
+
+    <!-- DAFTAR TRANSAKSI -->
+
+    <section class="panel">
+
+      <div class="panel-header">
+
+        <div>
+          <h2>Riwayat Transaksi</h2>
+          <p>
+            Total ${orders.length} transaksi pada data demo.
+          </p>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          data-action="export-report">
+          Ekspor CSV
+        </button>
+
+      </div>
+
+      <div class="report-toolbar">
+
+        <input
+          type="search"
+          id="reportSearch"
+          class="search-input"
+          placeholder="Cari nomor pesanan, pembeli, atau produk..."
+        >
+
+        <select
+          id="reportStatusFilter"
+          class="report-filter">
+
+          <option value="Semua">Semua Status</option>
+          <option value="Menunggu">Menunggu</option>
+          <option value="Diproses">Diproses</option>
+          <option value="Dikirim">Dikirim</option>
+          <option value="Selesai">Selesai</option>
+          <option value="Dibatalkan">Dibatalkan</option>
+
+        </select>
+
+      </div>
+
+      <div id="reportTableResult">
+        ${renderReportTable(orders)}
+      </div>
+
+    </section>
+
+  `;
+
+  // PENCARIAN DAN FILTER
+  const searchInput =
+    document.getElementById("reportSearch");
+
+  const statusFilter =
+    document.getElementById("reportStatusFilter");
+
+  function applyReportFilter() {
+
+    const keyword =
+      searchInput.value.toLowerCase().trim();
+
+    const selectedStatus =
+      statusFilter.value;
+
+    const filtered = orders.filter(order => {
+
+      const matchKeyword =
+        order.id.toLowerCase().includes(keyword) ||
+        order.buyer.toLowerCase().includes(keyword) ||
+        order.product.toLowerCase().includes(keyword);
+
+      const matchStatus =
+        selectedStatus === "Semua" ||
+        order.status === selectedStatus;
+
+      return matchKeyword && matchStatus;
+
+    });
+
+    document.getElementById(
+      "reportTableResult"
+    ).innerHTML = renderReportTable(filtered);
+
+  }
+
+  searchInput.addEventListener(
+    "input",
+    applyReportFilter
+  );
+
+  statusFilter.addEventListener(
+    "change",
+    applyReportFilter
+  );
+
+}
+
+
+// ==================================================
+// TABEL RIWAYAT TRANSAKSI
+// ==================================================
+
+function renderReportTable(data) {
+
   return renderTable(
     [
       "Nomor Pesanan",
@@ -1740,8 +2310,9 @@ function renderOrderTable(data) {
       "Tanggal",
       "Status"
     ],
+
     data.map(order => [
-      escapeHTML(order.id),
+      `<strong>${escapeHTML(order.id)}</strong>`,
       escapeHTML(order.buyer),
       escapeHTML(order.product),
       rupiah(order.total),
@@ -1749,73 +2320,9 @@ function renderOrderTable(data) {
       statusBadge(order.status)
     ])
   );
+
 }
 
-// ==================================================
-// LAPORAN PENJUALAN
-// ==================================================
-
-function renderReports() {
-  const completedOrders = orders.filter(
-    order => order.status === "Selesai"
-  );
-
-  const totalRevenue = completedOrders.reduce(
-    (sum, order) => sum + order.total,
-    0
-  );
-
-  const pendingOrders = orders.filter(
-    order => order.status === "Menunggu"
-  ).length;
-
-  pageContent.innerHTML = `
-    <div class="stats-grid">
-
-      ${statCard(
-        "Total Transaksi Selesai",
-        completedOrders.length,
-        "✓",
-        "Jumlah pesanan berstatus selesai"
-      )}
-
-      ${statCard(
-        "Total Penjualan",
-        rupiah(totalRevenue),
-        "Rp",
-        "Dihitung dari pesanan selesai"
-      )}
-
-      ${statCard(
-        "Pesanan Menunggu",
-        pendingOrders,
-        "▤",
-        "Pesanan yang belum selesai"
-      )}
-
-    </div>
-
-    <section class="panel">
-
-      <div class="panel-header">
-        <div>
-          <h2>Ringkasan Transaksi</h2>
-          <p>Data laporan contoh untuk demo.</p>
-        </div>
-
-        <button
-          class="btn btn-primary"
-          data-action="export-report"
-        >
-          Ekspor CSV
-        </button>
-      </div>
-
-      ${renderOrderTable(orders)}
-
-    </section>
-  `;
-}
 
 // ==================================================
 // GANTI PERIODE GRAFIK
@@ -1926,6 +2433,20 @@ document.addEventListener("click", event => {
 
   const action = actionButton.dataset.action;
   const id = Number(actionButton.dataset.id);
+
+  
+// DETAIL PESANAN
+if (action === "view-order") {
+  showOrderDetail(actionButton.dataset.id);
+  return;
+}
+
+// TUTUP MODAL PESANAN
+if (action === "close-order-modal") {
+  document.getElementById("orderModal")?.remove();
+  return;
+}
+
 
   
   // DETAIL PENGGUNA
@@ -2202,6 +2723,53 @@ document.addEventListener("submit", event => {
   renderPage("products");
 
   showToast("Data produk berhasil diperbarui.");
+});
+
+
+// ==================================================
+// SIMPAN STATUS PESANAN
+// ==================================================
+
+document.addEventListener("submit", event => {
+  if (event.target.id !== "orderStatusForm") return;
+
+  event.preventDefault();
+
+  const orderId = event.target.dataset.id;
+
+  const order = orders.find(item => item.id === orderId);
+
+  if (!order) return;
+
+  const newStatus =
+    document.getElementById("newOrderStatus").value;
+
+  if (!orderStatuses.includes(newStatus)) {
+    showToast("Status pesanan tidak valid.");
+    return;
+  }
+
+  const oldStatus = order.status;
+
+  if (oldStatus === newStatus) {
+    showToast("Status pesanan tidak mengalami perubahan.");
+    return;
+  }
+
+  order.status = newStatus;
+
+  addActivity(
+    `Status pesanan ${order.id} diperbarui`,
+    `${oldStatus} → ${newStatus}`
+  );
+
+  document.getElementById("orderModal")?.remove();
+
+  renderPage("orders");
+
+  showToast(
+    `Status pesanan ${order.id} berhasil diubah menjadi ${newStatus}.`
+  );
 });
 
 // ==================================================

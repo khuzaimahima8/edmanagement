@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'cart_screens.dart';
 import 'toko_penjual_screens.dart';
 import 'chat_penjual_screens.dart';
+import 'produk_3d_screens.dart';
 
 class DetailProductScreen extends StatefulWidget {
   final Map<String, String> product;
@@ -592,19 +593,54 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // GAMBAR PRODUK
-            Container(
-              height: 260,
-              width: double.infinity,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: _buildProductImage(imagePath),
+           // GAMBAR PRODUK
+          Container(
+            height: 260,
+            width: double.infinity,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: _buildProductImage(imagePath),
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 12),
+
+          // TOMBOL LIHAT PRODUK 3D
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: primaryColor,
+                side: BorderSide(color: primaryColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+               onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => Produk3DScreen(
+                      namaProduk: name,
+                      modelPath: 'assets/models/produk.glb'
+                    )
+                  ),
+                );
+              },
+              icon: const Icon(Icons.view_in_ar),
+              label: const Text(
+                'Lihat Produk dalam 3D',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
 
             // NAMA PRODUK
             Text(

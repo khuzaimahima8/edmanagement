@@ -2104,3 +2104,483 @@ select:focus-visible {
     min-width: 180px;
   }
 }
+
+/* ==================================================
+   TAHAP 2C - MANAJEMEN PESANAN
+================================================== */
+
+.order-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+  padding: 20px 22px 5px;
+}
+
+.order-summary-card {
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #FAFCFA;
+}
+
+.order-summary-card span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.order-summary-card strong {
+  color: var(--green);
+  font-size: 24px;
+}
+
+.order-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px 22px;
+}
+
+.order-toolbar .search-box {
+  flex: 1;
+  min-width: 220px;
+}
+
+.order-filter {
+  width: 180px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  outline: none;
+  font-size: 11px;
+}
+
+.order-filter:focus {
+  border-color: var(--green);
+}
+
+/* MODAL PESANAN */
+
+.order-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 520;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 35, 24, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.order-modal {
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  animation: orderModalAppear 0.2s ease;
+}
+
+@keyframes orderModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.order-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-modal-header h2 {
+  margin-bottom: 7px;
+  font-size: 17px;
+}
+
+.order-modal-header p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.order-modal-close {
+  width: 35px;
+  height: 35px;
+  border: none;
+  border-radius: 8px;
+  background: #F2F5F3;
+  color: #526057;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.order-modal-close:hover {
+  background: #E0F2E9;
+  color: var(--green);
+}
+
+.order-modal-body {
+  padding: 24px;
+}
+
+.order-detail-section {
+  margin-bottom: 23px;
+}
+
+.order-detail-section h3 {
+  margin-bottom: 13px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.order-detail-item {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #FAFCFA;
+}
+
+.order-detail-item span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.order-detail-item strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* FORM STATUS PESANAN */
+
+.order-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.order-form-field label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.order-form-field select {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  font-size: 12px;
+}
+
+.order-form-field select:focus {
+  border-color: var(--green);
+}
+
+.order-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .order-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .order-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .order-filter {
+    width: 100%;
+  }
+
+  .order-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-modal-body {
+    padding: 17px;
+  }
+
+  .order-modal-header {
+    padding: 17px;
+  }
+}
+
+
+/* ==================================================
+   TAHAP 2D - LAPORAN PENJUALAN
+================================================== */
+
+.report-extra-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 22px;
+}
+
+.report-extra-card {
+  min-width: 0;
+  padding: 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  box-shadow: var(--shadow);
+}
+
+.report-extra-card span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.report-extra-card strong {
+  display: block;
+  color: var(--green);
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.report-chart-panel {
+  margin-bottom: 22px;
+}
+
+.report-chart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 24px;
+}
+
+.report-chart-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-chart-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-chart-info strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.report-chart-info span {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.report-chart-track {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #EAF0EC;
+}
+
+.report-chart-bar {
+  height: 100%;
+  min-width: 0;
+  border-radius: 20px;
+  background: var(--green);
+  transition: width 0.4s ease;
+}
+
+.report-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 22px;
+}
+
+.report-toolbar .search-input {
+  flex: 1;
+  min-width: 200px;
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  background: #FFFFFF;
+  font-size: 11px;
+}
+
+.report-toolbar .search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(0, 107, 66, 0.07);
+}
+
+.report-filter {
+  width: 180px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: var(--text);
+  outline: none;
+  font-size: 11px;
+}
+
+.report-filter:focus {
+  border-color: var(--green);
+}
+
+/* RESPONSIVE LAPTOP DAN TABLET */
+
+@media (max-width: 1000px) {
+  .report-extra-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* RESPONSIVE MOBILE */
+
+@media (max-width: 650px) {
+  .report-extra-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .report-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .report-toolbar .search-input,
+  .report-filter {
+    width: 100%;
+  }
+
+  .report-chart-list {
+    padding: 18px;
+  }
+}
+
+
+/* GRAFIK BATANG VERTIKAL */
+
+.vertical-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 25px;
+  min-height: 280px;
+  padding: 30px 25px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.vertical-chart-item {
+  flex: 1;
+  max-width: 150px;
+  min-width: 0;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vertical-chart-value {
+  min-height: 30px;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.vertical-chart-column {
+  width: 55px;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: #EDF4F0;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.vertical-chart-bar {
+  width: 100%;
+  min-height: 4px;
+  background: var(--green);
+  border-radius: 7px 7px 0 0;
+  transition: height 0.4s ease;
+}
+
+.vertical-chart-label {
+  width: 100%;
+  min-height: 40px;
+  padding-top: 12px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+  .vertical-chart {
+    gap: 12px;
+    padding: 25px 10px 15px;
+    overflow-x: auto;
+  }
+
+  .vertical-chart-item {
+    min-width: 90px;
+  }
+
+  .vertical-chart-column {
+    width: 42px;
+  }
+
+  .vertical-chart-value {
+    font-size: 9px;
+  }
+}
+
