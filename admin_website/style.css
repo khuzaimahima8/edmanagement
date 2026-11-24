@@ -2584,3 +2584,197 @@ select:focus-visible {
   }
 }
 
+
+/* ==================================================
+   TAHAP 2E - PUSAT KELUHAN
+================================================== */
+
+.complaint-toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 20px 22px;
+  align-items: center;
+}
+
+.complaint-toolbar .search-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.complaint-toolbar .filter-select {
+  min-width: 170px;
+}
+
+.complaint-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(20, 40, 31, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.complaint-modal {
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.complaint-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #E5EBE7;
+}
+
+.complaint-modal-header h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.complaint-modal-header p {
+  margin: 0;
+  color: #7A8981;
+  font-size: 12px;
+}
+
+.complaint-close {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 9px;
+  background: #F0F5F2;
+  color: #52645A;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.complaint-modal-body {
+  padding: 24px;
+}
+
+.complaint-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.complaint-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px;
+  border: 1px solid #E0EAE3;
+  border-radius: 10px;
+  background: #F8FBF9;
+}
+
+.complaint-detail-item span,
+.complaint-message-box span {
+  color: #77877D;
+  font-size: 11px;
+}
+
+.complaint-detail-item strong {
+  color: #26372D;
+  font-size: 13px;
+}
+
+.complaint-message-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 17px;
+  border: 1px solid #E0EAE3;
+  border-radius: 10px;
+}
+
+.complaint-message-box strong {
+  color: #26372D;
+  font-size: 14px;
+}
+
+.complaint-message-box p {
+  margin: 0;
+  color: #53645A;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.complaint-response {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 22px;
+}
+
+.complaint-response label {
+  margin-top: 8px;
+  color: #26372D;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.complaint-response select,
+.complaint-response textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #DCE6DF;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #26372D;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.complaint-response select:focus,
+.complaint-response textarea:focus {
+  border-color: #006B42;
+}
+
+.complaint-response textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.complaint-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 24px;
+  border-top: 1px solid #E5EBE7;
+}
+
+@media (max-width: 600px) {
+  .complaint-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .complaint-toolbar .search-input,
+  .complaint-toolbar .filter-select {
+    width: 100%;
+  }
+
+  .complaint-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .complaint-modal-overlay {
+    padding: 10px;
+  }
+
+  .complaint-modal-footer {
+    flex-wrap: wrap;
+  }
+}

@@ -2434,6 +2434,62 @@ document.addEventListener("click", event => {
   const action = actionButton.dataset.action;
   const id = Number(actionButton.dataset.id);
 
+  // BUKA DETAIL KELUHAN
+  if (action === "view-complaint") {
+    openComplaintDetail(id);
+    return;
+  }
+
+  // TUTUP DETAIL KELUHAN
+  if (action === "close-complaint") {
+    const container = document.getElementById(
+      "complaintModalContainer"
+    );
+
+    if (container) container.innerHTML = "";
+    return;
+  }
+
+  // SIMPAN TANGGAPAN DAN STATUS
+  if (action === "save-complaint") {
+
+    const item = complaints.find(
+      complaint => complaint.id === id
+    );
+
+    if (!item) return;
+
+    const newStatus = document.getElementById(
+      "complaintStatus"
+    ).value;
+
+    const reply = document.getElementById(
+      "complaintReply"
+    ).value.trim();
+
+    if (!reply) {
+      showToast("Silakan isi tanggapan admin terlebih dahulu.");
+      return;
+    }
+
+    const oldStatus = item.status;
+
+    item.status = newStatus;
+    item.reply = reply;
+
+    addActivity(
+      `Keluhan ${item.name} diperbarui`,
+      `${item.subject} • Status: ${newStatus}`
+    );
+
+    renderPage("complaints");
+
+    showToast(
+      "Tanggapan dan status keluhan berhasil disimpan."
+    );
+
+    return;
+  }
   
 // DETAIL PESANAN
 if (action === "view-order") {
@@ -2859,56 +2915,324 @@ if (logoutBtn) {
   });
 }
 
-//==================================================
-//DATA KELUHAN
-//==================================================
+
+// ==================================================
+// PUSAT KELUHAN - TAHAP 2E
+// ==================================================
+
 function renderComplaints() {
+
+  const waiting = complaints.filter(
+    item => item.status === "Menunggu"
+  ).length;
+
+  const processing = complaints.filter(
+    item => item.status === "Diproses"
+  ).length;
+
+  const completed = complaints.filter(
+    item => item.status === "Selesai"
+  ).length;
+
   pageContent.innerHTML = `
+
+    <!-- RINGKASAN KELUHAN -->
+
+    <div class="stats-grid">
+
+      ${statCard(
+        "Total Keluhan",
+        complaints.length,
+        "!",
+        "Seluruh laporan masuk"
+      )}
+
+      ${statCard(
+        "Menunggu",
+        waiting,
+        "◷",
+        "Belum ditangani"
+      )}
+
+      ${statCard(
+        "Diproses",
+        processing,
+        "↻",
+        "Sedang ditangani admin"
+      )}
+
+      ${statCard(
+        "Selesai",
+        completed,
+        "✓",
+        "Keluhan telah diselesaikan"
+      )}
+
+    </div>
+
+    <!-- DAFTAR KELUHAN -->
+
     <section class="panel">
 
       <div class="panel-header">
         <div>
           <h2>Daftar Keluhan</h2>
-          <p>Kelola laporan dari pembeli dan penjual.</p>
+          <p>
+            Kelola laporan dari pembeli dan penjual.
+          </p>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Nama</th>
-              <th>Jenis Pengguna</th>
-              <th>Keluhan</th>
-              <th>Tanggal</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
+      <div class="complaint-toolbar">
 
-          <tbody>
-            ${complaints.map(item => `
-              <tr>
-                <td>${escapeHTML(item.name)}</td>
-                <td>${escapeHTML(item.role)}</td>
-                <td>${escapeHTML(item.subject)}</td>
-                <td>${escapeHTML(item.date)}</td>
-                <td>${statusBadge(item.status)}</td>
-                <td>
-                  <button
-                    class="btn btn-primary"
-                    data-action="view-complaint"
-                    data-id="${item.id}">
-                    Detail
-                  </button>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
+        <input
+          type="search"
+          id="complaintSearch"
+          class="search-input"
+          placeholder="Cari nama atau jenis keluhan..."
+        >
+
+        <select
+          id="complaintFilter"
+          class="filter-select"
+        >
+          <option value="Semua">Semua Status</option>
+          <option value="Menunggu">Menunggu</option>
+          <option value="Diproses">Diproses</option>
+          <option value="Selesai">Selesai</option>
+        </select>
+
+      </div>
+
+      <div id="complaintTableResult">
+        ${renderComplaintTable(complaints)}
       </div>
 
     </section>
+
+    <div id="complaintModalContainer"></div>
+
+  `;
+
+  const search = document.getElementById(
+    "complaintSearch"
+  );
+
+  const filter = document.getElementById(
+    "complaintFilter"
+  );
+
+  function applyComplaintFilter() {
+
+    const keyword = search.value.toLowerCase().trim();
+    const selectedStatus = filter.value;
+
+    const filtered = complaints.filter(item => {
+
+      const matchKeyword =
+        item.name.toLowerCase().includes(keyword) ||
+        item.subject.toLowerCase().includes(keyword) ||
+        item.role.toLowerCase().includes(keyword);
+
+      const matchStatus =
+        selectedStatus === "Semua" ||
+        item.status === selectedStatus;
+
+      return matchKeyword && matchStatus;
+    });
+
+    document.getElementById(
+      "complaintTableResult"
+    ).innerHTML = renderComplaintTable(filtered);
+  }
+
+  search.addEventListener("input", applyComplaintFilter);
+  filter.addEventListener("change", applyComplaintFilter);
+
+}
+
+
+// ==================================================
+// TABEL KELUHAN
+// ==================================================
+
+function renderComplaintTable(data) {
+
+  return renderTable(
+    [
+      "Nama",
+      "Jenis Pengguna",
+      "Keluhan",
+      "Tanggal",
+      "Status",
+      "Aksi"
+    ],
+
+    data.map(item => [
+
+      escapeHTML(item.name),
+
+      escapeHTML(item.role),
+
+      escapeHTML(item.subject),
+
+      escapeHTML(item.date),
+
+      statusBadge(item.status),
+
+      `
+        <button
+          class="btn btn-primary"
+          data-action="view-complaint"
+          data-id="${item.id}"
+        >
+          Detail
+        </button>
+      `
+    ])
+  );
+}
+
+
+// ==================================================
+// DETAIL KELUHAN
+// ==================================================
+
+function openComplaintDetail(id) {
+
+  const item = complaints.find(
+    complaint => complaint.id === id
+  );
+
+  if (!item) return;
+
+  const container = document.getElementById(
+    "complaintModalContainer"
+  );
+
+  if (!container) return;
+
+  container.innerHTML = `
+
+    <div class="complaint-modal-overlay">
+
+      <div class="complaint-modal">
+
+        <div class="complaint-modal-header">
+
+          <div>
+            <h2>Detail Keluhan</h2>
+            <p>Informasi laporan pengguna ED Management.</p>
+          </div>
+
+          <button
+            type="button"
+            class="complaint-close"
+            data-action="close-complaint"
+          >
+            ×
+          </button>
+
+        </div>
+
+        <div class="complaint-modal-body">
+
+          <div class="complaint-detail-grid">
+
+            <div class="complaint-detail-item">
+              <span>Nama Pengguna</span>
+              <strong>${escapeHTML(item.name)}</strong>
+            </div>
+
+            <div class="complaint-detail-item">
+              <span>Jenis Pengguna</span>
+              <strong>${escapeHTML(item.role)}</strong>
+            </div>
+
+            <div class="complaint-detail-item">
+              <span>Tanggal Laporan</span>
+              <strong>${escapeHTML(item.date)}</strong>
+            </div>
+
+            <div class="complaint-detail-item">
+              <span>Status Keluhan</span>
+              <strong>${statusBadge(item.status)}</strong>
+            </div>
+
+          </div>
+
+          <div class="complaint-message-box">
+
+            <span>Judul Keluhan</span>
+            <strong>${escapeHTML(item.subject)}</strong>
+
+            <span>Isi Keluhan</span>
+            <p>${escapeHTML(item.message)}</p>
+
+          </div>
+
+          <div class="complaint-response">
+
+            <label for="complaintStatus">
+              Status Penanganan
+            </label>
+
+            <select id="complaintStatus">
+
+              <option value="Menunggu"
+                ${item.status === "Menunggu" ? "selected" : ""}>
+                Menunggu
+              </option>
+
+              <option value="Diproses"
+                ${item.status === "Diproses" ? "selected" : ""}>
+                Diproses
+              </option>
+
+              <option value="Selesai"
+                ${item.status === "Selesai" ? "selected" : ""}>
+                Selesai
+              </option>
+
+            </select>
+
+            <label for="complaintReply">
+              Tanggapan Administrator
+            </label>
+
+            <textarea
+              id="complaintReply"
+              rows="4"
+              placeholder="Tuliskan tanggapan admin..."
+            >${escapeHTML(item.reply || "")}</textarea>
+
+          </div>
+
+        </div>
+
+        <div class="complaint-modal-footer">
+
+          <button
+            class="btn btn-light"
+            data-action="close-complaint"
+          >
+            Tutup
+          </button>
+
+          <button
+            class="btn btn-primary"
+            data-action="save-complaint"
+            data-id="${item.id}"
+          >
+            Simpan Perubahan
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
   `;
 }
 
