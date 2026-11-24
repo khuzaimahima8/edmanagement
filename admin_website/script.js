@@ -3236,71 +3236,301 @@ function openComplaintDetail(id) {
   `;
 }
 
+
 //==================================================
-//PENGATURAN ADMIN
+// PENGATURAN ADMIN
 //==================================================
 function renderSettings() {
+  const adminNameValue =
+    localStorage.getItem("adminName") || "Administrator";
+
+  const adminEmailValue =
+    localStorage.getItem("adminEmail") || DEMO_EMAIL;
+
+  const notifications = {
+    orders: localStorage.getItem("adminNotifyOrders") !== "false",
+    sellers: localStorage.getItem("adminNotifySellers") !== "false",
+    products: localStorage.getItem("adminNotifyProducts") !== "false",
+    complaints: localStorage.getItem("adminNotifyComplaints") !== "false"
+  };
+
   pageContent.innerHTML = `
-    <section class="panel">
+    <div class="settings-container">
 
-      <div class="panel-header">
-        <div>
-          <h2>Profil Administrator</h2>
-          <p>Informasi akun administrator ED Management.</p>
+      <!-- PROFIL ADMINISTRATOR -->
+      <section class="panel settings-section">
+
+        <div class="panel-header">
+          <div>
+            <h2>Profil Administrator</h2>
+            <p>Informasi akun administrator ED Management.</p>
+          </div>
         </div>
-      </div>
 
-      <form id="adminSettingsForm" class="settings-form">
+        <form id="adminSettingsForm" class="settings-form">
 
-        <div class="settings-field">
-          <label>Nama Administrator</label>
-          <input
-            type="text"
-            id="settingsName"
-            value="${escapeHTML(
-              localStorage.getItem("adminName") || "Administrator"
-            )}"
-            required
+          <div class="settings-field">
+            <label for="settingsName">Nama Administrator</label>
+            <input
+              type="text"
+              id="settingsName"
+              value="${escapeHTML(adminNameValue)}"
+              required
+            >
+          </div>
+
+          <div class="settings-field">
+            <label for="settingsEmail">Email Administrator</label>
+            <input
+              type="email"
+              id="settingsEmail"
+              value="${escapeHTML(adminEmailValue)}"
+              required
+            >
+          </div>
+
+          <button class="btn btn-primary" type="submit">
+            Simpan Perubahan
+          </button>
+
+        </form>
+      </section>
+
+
+      <!-- KEAMANAN AKUN -->
+      <section class="panel settings-section">
+
+        <div class="panel-header">
+          <div>
+            <h2>Keamanan Akun</h2>
+            <p>Kelola keamanan akun administrator.</p>
+          </div>
+        </div>
+
+        <form id="adminPasswordForm" class="settings-form">
+
+          <div class="settings-field">
+            <label for="newAdminPassword">Password Baru</label>
+            <input
+              type="password"
+              id="newAdminPassword"
+              placeholder="Masukkan password baru"
+              minlength="8"
+              required
+            >
+          </div>
+
+          <div class="settings-field">
+            <label for="confirmAdminPassword">
+              Konfirmasi Password Baru
+            </label>
+            <input
+              type="password"
+              id="confirmAdminPassword"
+              placeholder="Ulangi password baru"
+              minlength="8"
+              required
+            >
+          </div>
+
+          <button class="btn btn-primary" type="submit">
+            Ubah Password
+          </button>
+
+          <p class="settings-info">
+            Password minimal terdiri dari 8 karakter.
+          </p>
+
+        </form>
+      </section>
+
+
+      <!-- PENGATURAN NOTIFIKASI -->
+      <section class="panel settings-section">
+
+        <div class="panel-header">
+          <div>
+            <h2>Pengaturan Notifikasi</h2>
+            <p>Atur pemberitahuan yang diterima administrator.</p>
+          </div>
+        </div>
+
+        <div class="notification-settings">
+
+          <div class="notification-item">
+            <div>
+              <strong>Notifikasi Pesanan</strong>
+              <p>Pemberitahuan ketika terdapat pesanan baru.</p>
+            </div>
+
+            <label class="settings-switch">
+              <input
+                type="checkbox"
+                id="notifyOrders"
+                ${notifications.orders ? "checked" : ""}
+              >
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+
+          <div class="notification-item">
+            <div>
+              <strong>Notifikasi Penjual</strong>
+              <p>Pemberitahuan pendaftaran penjual baru.</p>
+            </div>
+
+            <label class="settings-switch">
+              <input
+                type="checkbox"
+                id="notifySellers"
+                ${notifications.sellers ? "checked" : ""}
+              >
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+
+          <div class="notification-item">
+            <div>
+              <strong>Notifikasi Produk</strong>
+              <p>Pemberitahuan perubahan dan penambahan produk.</p>
+            </div>
+
+            <label class="settings-switch">
+              <input
+                type="checkbox"
+                id="notifyProducts"
+                ${notifications.products ? "checked" : ""}
+              >
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+
+          <div class="notification-item">
+            <div>
+              <strong>Notifikasi Keluhan</strong>
+              <p>Pemberitahuan laporan dan keluhan pengguna.</p>
+            </div>
+
+            <label class="settings-switch">
+              <input
+                type="checkbox"
+                id="notifyComplaints"
+                ${notifications.complaints ? "checked" : ""}
+              >
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="settings-save">
+          <button
+            class="btn btn-primary"
+            type="button"
+            id="saveNotifications"
           >
+            Simpan Pengaturan
+          </button>
         </div>
 
-        <div class="settings-field">
-          <label>Email Administrator</label>
-          <input
-            type="email"
-            id="settingsEmail"
-            value="${escapeHTML(
-              localStorage.getItem("adminEmail") || DEMO_EMAIL
-            )}"
-            required
-          >
-        </div>
+      </section>
 
-        <button class="btn btn-primary" type="submit">
-          Simpan Perubahan
-        </button>
-
-      </form>
-
-    </section>
+    </div>
   `;
 
+
+  // SIMPAN PROFIL ADMIN
   document.getElementById("adminSettingsForm")
     .addEventListener("submit", function(event) {
+
       event.preventDefault();
 
-      const name = document.getElementById("settingsName").value.trim();
-      const email = document.getElementById("settingsEmail").value.trim();
+      const name = document.getElementById("settingsName")
+        .value.trim();
+
+      const email = document.getElementById("settingsEmail")
+        .value.trim();
+
+      if (!name || !email) {
+        showToast("Nama dan email wajib diisi.");
+        return;
+      }
 
       localStorage.setItem("adminName", name);
       localStorage.setItem("adminEmail", email);
 
-      if (adminName) adminName.textContent = name;
-      if (adminEmailLabel) adminEmailLabel.textContent = email;
+      if (adminName) {
+        adminName.textContent = name;
+      }
+
+      if (adminEmailLabel) {
+        adminEmailLabel.textContent = email;
+      }
 
       showToast("Profil administrator berhasil diperbarui.");
     });
+
+
+  // UBAH PASSWORD ADMIN (MODE DEMO)
+  document.getElementById("adminPasswordForm")
+    .addEventListener("submit", function(event) {
+
+      event.preventDefault();
+
+      const password = document.getElementById("newAdminPassword")
+        .value;
+
+      const confirmPassword = document.getElementById("confirmAdminPassword")
+        .value;
+
+      if (password.length < 8) {
+        showToast("Password minimal 8 karakter.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast("Konfirmasi password tidak sesuai.");
+        return;
+      }
+
+      // Penyimpanan khusus prototipe frontend.
+      localStorage.setItem("adminDemoPassword", password);
+
+      document.getElementById("adminPasswordForm").reset();
+
+      showToast("Password demo berhasil diperbarui.");
+    });
+
+
+  // SIMPAN NOTIFIKASI
+  document.getElementById("saveNotifications")
+    .addEventListener("click", function() {
+
+      localStorage.setItem(
+        "adminNotifyOrders",
+        document.getElementById("notifyOrders").checked
+      );
+
+      localStorage.setItem(
+        "adminNotifySellers",
+        document.getElementById("notifySellers").checked
+      );
+
+      localStorage.setItem(
+        "adminNotifyProducts",
+        document.getElementById("notifyProducts").checked
+      );
+
+      localStorage.setItem(
+        "adminNotifyComplaints",
+        document.getElementById("notifyComplaints").checked
+      );
+
+      showToast("Pengaturan notifikasi berhasil disimpan.");
+    });
+
 }
+
 
 // ==================================================
 // INISIALISASI
