@@ -2925,3 +2925,18 @@ select:focus-visible {
     gap: 10px;
   }
 }
+
+/* POSISI SIDEBAR DAN TOMBOL LOGOUT */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.navigation {
+  flex: 1;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 20px;
+}
