@@ -53,14 +53,19 @@ class CartService extends ChangeNotifier {
   // ==================================================
 
   Future<void> _queueSave(Future<void> Function() action) {
-    _saveQueue = _saveQueue.then((_) => action()).catchError((
-      Object error,
-      StackTrace stackTrace,
-    ) {
-      debugPrint('Gagal menyimpan keranjang: $error');
-    });
+    final operation = _saveQueue.then((_) => action());
 
-    return _saveQueue;
+    // Antrean berikutnya tetap dapat berjalan meskipun operasi
+    // sebelumnya gagal.
+    _saveQueue = operation.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('Gagal menyimpan keranjang: $error');
+      },
+    );
+
+    // Pemanggil operasi ini tetap menerima error aslinya.
+    return operation;
   }
 
   Future<void> waitForPendingSaves() async {

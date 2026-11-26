@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'review_produk_screens.dart';
 
 class PesananSayaScreen extends StatefulWidget {
   const PesananSayaScreen({super.key});
@@ -14,6 +15,10 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
   bool _isLoading = true;
   String? _error;
   List<Map<String, dynamic>> _pesanan = [];
+  Set<String> _reviewedItems = {};
+
+  String _reviewKey(String orderId, String productId) =>
+      '${orderId}_$productId';
 
   @override
   void initState() {
@@ -51,10 +56,27 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
         ),
       );
 
+      final reviewResponse = await supabase
+          .from('reviews')
+          .select('order_id, product_id')
+          .eq('buyer_id', user.id);
+
+      final reviewed = <String>{};
+
+      for (final item in reviewResponse) {
+        final orderId = item['order_id']?.toString() ?? '';
+        final productId = item['product_id']?.toString() ?? '';
+
+        if (orderId.isNotEmpty && productId.isNotEmpty) {
+          reviewed.add(_reviewKey(orderId, productId));
+        }
+      }
+
       if (!mounted) return;
 
       setState(() {
         _pesanan = data;
+        _reviewedItems = reviewed;
         _isLoading = false;
       });
     } catch (e) {
@@ -121,7 +143,11 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
     final url = image?.toString() ?? '';
 
     if (url.isEmpty) {
-      return const Icon(Icons.shopping_bag_outlined, size: 32);
+      return const SizedBox(
+        width: 72,
+        height: 72,
+        child: Icon(Icons.shopping_bag_outlined, size: 32),
+      );
     }
 
     return Image.network(
@@ -139,6 +165,37 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
     );
   }
 
+  Future<void> _bukaReview(
+    Map<String, dynamic> order,
+    Map<String, dynamic> item,
+  ) async {
+    final orderId = order['id']?.toString() ?? '';
+    final productId = item['product_id']?.toString() ?? '';
+
+    if (orderId.isEmpty || productId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID pesanan atau produk tidak tersedia.')),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewProdukScreen(
+          orderItemId: orderId,
+          productId: productId,
+          productName: item['name']?.toString() ?? 'Produk',
+          sellerId: '',
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _muatPesanan();
+    }
+  }
+
   Widget _kartuPesanan(Map<String, dynamic> order) {
     final rawItems = order['items'];
 
@@ -150,6 +207,7 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
         : [];
 
     final status = order['status']?.toString() ?? 'pending';
+    final isCompleted = status.toLowerCase() == 'completed';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -207,54 +265,86 @@ class _PesananSayaScreenState extends State<PesananSayaScreen> {
                 final price = item['unit_price'] ?? 0;
                 final name = item['name']?.toString() ?? 'Produk';
                 final variant = item['variant']?.toString() ?? 'Default';
+                final productId = item['product_id']?.toString() ?? '';
+                final orderId = order['id']?.toString() ?? '';
+
+                final hasReviewed = _reviewedItems.contains(
+                  _reviewKey(orderId, productId),
+                );
+
+                final subtotal =
+                    (num.tryParse(price.toString()) ?? 0) *
+                    (num.tryParse(quantity.toString()) ?? 1);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: _gambarProduk(item['image']),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: _gambarProduk(item['image']),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Varian: $variant',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  '${_rupiah(price)} × $quantity',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _rupiah(subtotal),
+                                  style: const TextStyle(
+                                    color: Color(0xFF006B42),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Varian: $variant',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              '${_rupiah(price)} × $quantity',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _rupiah(
-                                (num.tryParse(price.toString()) ?? 0) *
-                                    (num.tryParse(quantity.toString()) ?? 1),
-                              ),
-                              style: const TextStyle(
-                                color: Color(0xFF006B42),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+
+                      if (isCompleted && productId.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: hasReviewed
+                              ? OutlinedButton.icon(
+                                  onPressed: null,
+                                  icon: const Icon(Icons.check_circle),
+                                  label: const Text('Sudah diberi ulasan'),
+                                )
+                              : OutlinedButton.icon(
+                                  onPressed: () => _bukaReview(order, item),
+                                  icon: const Icon(Icons.star_outline),
+                                  label: const Text('Beri Rating & Ulasan'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF006B42),
+                                  ),
+                                ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 );
