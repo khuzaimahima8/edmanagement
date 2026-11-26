@@ -365,6 +365,7 @@ function emptyMessage(message) {
   `;
 }
 
+
 // ==================================================
 // LOGIN DEMO
 // ==================================================
@@ -412,9 +413,13 @@ if (loginForm) {
       email === DEMO_EMAIL &&
       password === DEMO_PASSWORD
     ) {
+      // SIMPAN STATUS LOGIN
+      sessionStorage.setItem("adminLoggedIn", "true");
+
       showAdmin();
       renderPage("dashboard");
       showToast("Login demo berhasil!");
+
     } else {
       showLogin(
         "Email atau password salah. Periksa akun demo."
@@ -427,6 +432,18 @@ if (loginForm) {
     }
   });
 }
+
+// ==================================================
+// MEMERIKSA STATUS LOGIN SAAT REFRESH
+// ==================================================
+
+if (sessionStorage.getItem("adminLoggedIn") === "true") {
+  showAdmin();
+  renderPage("dashboard");
+} else {
+  showLogin();
+}
+
 
 // ==================================================
 // KARTU STATISTIK
@@ -2903,6 +2920,8 @@ if (logoutBtn) {
 
     if (!confirmed) return;
 
+      // HAPUS STATUS LOGIN
+          sessionStorage.removeItem("adminLoggedIn");
     showLogin();
 
     const emailInput = document.getElementById("adminEmail");
